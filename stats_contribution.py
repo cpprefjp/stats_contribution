@@ -21,7 +21,6 @@ point_dict = {
     "boostjp/releasel": 20,
     "boostjp/addrefs": 10,
     "boostjp/addrefm": 20,
-    "boostjp/boosts": 5,
     "tool/fixbug": 30,
     "tool/improves": 10,
     "tool/improvem": 30,
