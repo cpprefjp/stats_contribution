@@ -70,8 +70,14 @@ def stats_contribution(text: str, filename: str) -> set[str]:
                 user_point += point_value * point_quantity
             users[user_name] = user_point
 
+    sum_point = 0
+    for point in users.values():
+        sum_point += point
+
+    print("| user | points | rate |")
+    print("|------|--------|------|")
     for name, point in sorted(users.items(), key=lambda item: item[1], reverse=True):
-        print("{}: {}".format(name, point))
+        print("| @{} | {} | {:.3}% |".format(name, point, point / sum_point * 100.0))
     return commit_set
 
 def check_commit_set(commit_set: set[str]) -> None:
