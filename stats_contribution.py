@@ -106,7 +106,7 @@ def check_commit_set(commit_set: set[str]) -> None:
 
     diff = commit_log_set - commit_set
     if len(diff) > 0:
-        print("unstats commits: {}".format(diff))
+        print("unstats commits: {}\n{}".format(len(diff), diff))
 
 if __name__ == '__main__':
     commit_set = set()
