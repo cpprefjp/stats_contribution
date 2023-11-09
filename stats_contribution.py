@@ -63,7 +63,12 @@ def stats_contribution(text: str, filename: str) -> set[str]:
             for point in points:
                 point_values = point.split(":")
                 point_name = point_values[0].strip()
-                point_quantity = int(point_values[1].strip())
+                try:
+                    point_quantity = int(point_values[1].strip())
+                except:
+                    print("invalid quantity: {}".format(point))
+                    raise
+
                 point_value = point_dict.get(point_name)
                 if not point_value:
                     raise KeyError("{}: invalid point tag `{}`".format(filename, point_name))
