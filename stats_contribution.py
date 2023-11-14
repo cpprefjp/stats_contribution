@@ -45,6 +45,7 @@ def stats_contribution(text: str, filename: str) -> set[str]:
     for line in text.split("\n"):
         m = re.fullmatch(r'## (.*?)', line)
         if m:
+            m = re.fullmatch(r'\[(.*?)\]\((.*?)\)', m.group(1))
             user_name = m.group(1)
             user_point = 0
             continue
