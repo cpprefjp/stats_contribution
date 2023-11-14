@@ -59,8 +59,11 @@ def stats_contribution(text: str, filename: str) -> set[str]:
                 full_commit_id = m.group(3)
                 commit_set.add(full_commit_id)
 
-            points = cols[2].split(",")
+            points = cols[2].strip().split(",")
             for point in points:
+                if len(point) == 0:
+                    continue
+
                 point_values = point.split(":")
                 point_name = point_values[0].strip()
                 try:
