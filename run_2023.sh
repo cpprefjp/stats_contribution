@@ -1,1 +1,1 @@
-sh run.sh --exclude-users faithandbrave,yumetodo,toru-fukaya
+sh run.sh --exclude-users faithandbrave,yumetodo,toru-fukaya,onihusube
