@@ -1,3 +1,4 @@
+import argparse
 import glob
 import re
 import os
@@ -36,7 +37,7 @@ point_dict = {
     "tool/addl": 100,
 }
 
-def stats_contribution(text: str, filename: str) -> set[str]:
+def stats_contribution(text: str, filename: str, exclude_users: list[str]) -> set[str]:
     user_name: str | None = None
     user_point = 0
     commit_set = set()
@@ -82,12 +83,16 @@ def stats_contribution(text: str, filename: str) -> set[str]:
             users[user_name] = user_point
 
     sum_point = 0
-    for point in users.values():
+    for name, point in users.items():
+        if name in exclude_users:
+            continue
         sum_point += point
 
     print("| user | points | rate |")
     print("|------|--------|------|")
     for name, point in sorted(users.items(), key=lambda item: item[1], reverse=True):
+        if name in exclude_users:
+            continue
         print("| @{} | {} | {:.3}% |".format(name, point, point / sum_point * 100.0))
     return commit_set
 
@@ -126,6 +131,16 @@ def check_commit_set(commit_set: set[str]) -> None:
         print("unstats commits: {}\n{}".format(len(diff), diff))
 
 if __name__ == '__main__':
+    argparser = argparse.ArgumentParser(description="")
+    argparser.add_argument("--exclude-users",
+                           dest='exclude_users_str',
+                           type=str,
+                           default="",
+                           help="comma separated userid list")
+    args = argparser.parse_args()
+
+    exclude_users = args.exclude_users_str.split(",")
+
     commit_set = set()
     for p in sorted(list(glob.glob("cpprefjp/site/start_editing/*.md", recursive=True))):
         filename = os.path.basename(p)
@@ -135,6 +150,6 @@ if __name__ == '__main__':
         with open(p) as f:
             text = f.read()
 
-        commit_set = commit_set.union(stats_contribution(text, p))
+        commit_set = commit_set.union(stats_contribution(text, p, exclude_users))
 
     check_commit_set(commit_set)

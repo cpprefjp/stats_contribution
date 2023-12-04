@@ -40,4 +40,4 @@ git pull
 cd ..
 
 cd ..
-python3 stats_contribution.py
+python3 stats_contribution.py $@
