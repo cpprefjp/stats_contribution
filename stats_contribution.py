@@ -82,18 +82,19 @@ def stats_contribution(text: str, filename: str, exclude_users: list[str]) -> se
                 user_point += point_value * point_quantity
             users[user_name] = user_point
 
+    base_sum_point = 0
     sum_point = 0
     for name, point in users.items():
-        if name in exclude_users:
-            continue
-        sum_point += point
+        base_sum_point += point
+        if not name in exclude_users:
+            sum_point += point
 
-    print("| user | points | rate |")
-    print("|------|--------|------|")
+    print("| user | points | base rate | rate |")
+    print("|------|--------|-----------|------|")
     for name, point in sorted(users.items(), key=lambda item: item[1], reverse=True):
-        if name in exclude_users:
-            continue
-        print("| @{} | {} | {:.3}% |".format(name, point, point / sum_point * 100.0))
+        base_rate = point / base_sum_point * 100.0
+        rate = 0.0 if name in exclude_users else (point / sum_point * 100.0)
+        print("| @{} | {} | {:.3}% | {:.3}% |".format(name, point, base_rate, rate))
     return commit_set
 
 def check_commit_set(commit_set: set[str]) -> None:
