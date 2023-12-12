@@ -37,7 +37,10 @@ point_dict = {
     "tool/addl": 100,
 }
 
-def stats_contribution(text: str, filename: str, exclude_users: list[str]) -> set[str]:
+def stats_contribution(text: str,
+                       filename: str,
+                       exclude_users: list[str],
+                       max_user_point_dict: dict[str, int]) -> set[str]:
     user_name: str | None = None
     user_point = 0
     commit_set = set()
@@ -87,14 +90,25 @@ def stats_contribution(text: str, filename: str, exclude_users: list[str]) -> se
     for name, point in users.items():
         base_sum_point += point
         if not name in exclude_users:
-            sum_point += point
+            user_point = point
+            if name in max_user_point_dict:
+                user_point = min(max_user_point_dict[name], point)
+            sum_point += user_point
 
-    print("| user | points | base rate | rate |")
-    print("|------|--------|-----------|------|")
+    print("| user | base points | points | base rate | rate |")
+    print("|------|-------------|--------|-----------|------|")
     for name, point in sorted(users.items(), key=lambda item: item[1], reverse=True):
         base_rate = point / base_sum_point * 100.0
-        rate = 0.0 if name in exclude_users else (point / sum_point * 100.0)
-        print("| @{} | {} | {:.3}% | {:.3}% |".format(name, point, base_rate, rate))
+        user_point = point
+        if name in max_user_point_dict:
+            user_point = min(max_user_point_dict[name], point)
+        rate = 0.0 if name in exclude_users else (user_point / sum_point * 100.0)
+        print("| @{} | {} | {} | {:.3}% | {:.3}% |".format(
+            name,
+            point,
+            user_point,
+            base_rate,
+            rate))
     return commit_set
 
 def check_commit_set(commit_set: set[str]) -> None:
@@ -138,9 +152,22 @@ if __name__ == '__main__':
                            type=str,
                            default="",
                            help="comma separated userid list")
+    argparser.add_argument("--max-user-points",
+                           dest='max_user_points_str',
+                           type=str,
+                           default="",
+                           help="comma separated max point list")
     args = argparser.parse_args()
 
     exclude_users = args.exclude_users_str.split(",")
+
+    max_user_points = args.max_user_points_str.split(",")
+    max_user_point_dict = dict()
+    for s in max_user_points:
+        if len(s) == 0:
+            continue
+        values = s.split("=")
+        max_user_point_dict[values[0]] = int(values[1])
 
     commit_set = set()
     for p in sorted(list(glob.glob("cpprefjp/site/start_editing/*.md", recursive=True))):
@@ -151,6 +178,6 @@ if __name__ == '__main__':
         with open(p) as f:
             text = f.read()
 
-        commit_set = commit_set.union(stats_contribution(text, p, exclude_users))
+        commit_set = commit_set.union(stats_contribution(text, p, exclude_users, max_user_point_dict))
 
     check_commit_set(commit_set)
