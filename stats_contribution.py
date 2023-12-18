@@ -39,8 +39,12 @@ point_dict = {
 
 def stats_contribution(text: str,
                        filename: str,
+                       receive_users: list[str],
                        exclude_users: list[str],
                        max_user_point_dict: dict[str, int]) -> set[str]:
+    def is_active_user(name: str) -> bool:
+        return (not name in exclude_users) and (len(receive_users) > 0 and name in receive_users);
+
     user_name: str | None = None
     user_point = 0
     commit_set = set()
@@ -89,7 +93,7 @@ def stats_contribution(text: str,
     sum_point = 0
     for name, point in users.items():
         base_sum_point += point
-        if not name in exclude_users:
+        if is_active_user(name):
             user_point = point
             if name in max_user_point_dict:
                 user_point = min(max_user_point_dict[name], point)
@@ -102,7 +106,7 @@ def stats_contribution(text: str,
         user_point = point
         if name in max_user_point_dict:
             user_point = min(max_user_point_dict[name], point)
-        rate = 0.0 if name in exclude_users else (user_point / sum_point * 100.0)
+        rate = (user_point / sum_point * 100.0) if is_active_user(name) else 0.0
         print("| @{} | {} | {} | {:.3}% | {:.3}% |".format(
             name,
             point,
@@ -152,6 +156,11 @@ if __name__ == '__main__':
                            type=str,
                            default="",
                            help="comma separated userid list")
+    argparser.add_argument("--receive-users",
+                           dest='receive_users_str',
+                           type=str,
+                           default="",
+                           help="comma separated userid list")
     argparser.add_argument("--max-user-points",
                            dest='max_user_points_str',
                            type=str,
@@ -159,6 +168,7 @@ if __name__ == '__main__':
                            help="comma separated max point list")
     args = argparser.parse_args()
 
+    receive_users = args.receive_users_str.split(",")
     exclude_users = args.exclude_users_str.split(",")
 
     max_user_points = args.max_user_points_str.split(",")
@@ -178,6 +188,7 @@ if __name__ == '__main__':
         with open(p) as f:
             text = f.read()
 
-        commit_set = commit_set.union(stats_contribution(text, p, exclude_users, max_user_point_dict))
+        commit_set = commit_set.union(stats_contribution(
+            text, p, receive_users, exclude_users, max_user_point_dict))
 
     check_commit_set(commit_set)

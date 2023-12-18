@@ -1,1 +1,1 @@
-sh run.sh --exclude-users faithandbrave,yumetodo,toru-fukaya,onihusube,sakujiro-inagaki,yohhoy,tshino --max-user-points grafi-tt=100
+sh run.sh --receive-users tomolatoon,h-sao,suomesta,ROCKTAKEY,grafi-tt,yknishidate --exclude-users faithandbrave,yumetodo,toru-fukaya,onihusube,sakujiro-inagaki,yohhoy,tshino,k-satoda --max-user-points grafi-tt=100
