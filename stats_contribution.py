@@ -39,10 +39,14 @@ point_dict = {
 
 def stats_contribution(text: str,
                        filename: str,
+                       year: int,
+                       target_year: int,
                        receive_users: list[str],
                        exclude_users: list[str],
                        max_user_point_dict: dict[str, int]) -> set[str]:
     def is_active_user(name: str) -> bool:
+        if len(exclude_users) == 0 and len(receive_users) == 0:
+            return True
         return (not name in exclude_users) and (len(receive_users) > 0 and name in receive_users);
 
     user_name: str | None = None
@@ -99,20 +103,21 @@ def stats_contribution(text: str,
                 user_point = min(max_user_point_dict[name], point)
             sum_point += user_point
 
-    print("| user | base points | points | base rate | rate |")
-    print("|------|-------------|--------|-----------|------|")
-    for name, point in sorted(users.items(), key=lambda item: item[1], reverse=True):
-        base_rate = point / base_sum_point * 100.0
-        user_point = point
-        if name in max_user_point_dict:
-            user_point = min(max_user_point_dict[name], point)
-        rate = (user_point / sum_point * 100.0) if is_active_user(name) else 0.0
-        print("| @{} | {} | {} | {:.3}% | {:.3}% |".format(
-            name,
-            point,
-            user_point,
-            base_rate,
-            rate))
+    if year == target_year:
+        print("| user | base points | points | base rate | rate |")
+        print("|------|-------------|--------|-----------|------|")
+        for name, point in sorted(users.items(), key=lambda item: item[1], reverse=True):
+            base_rate = point / base_sum_point * 100.0
+            user_point = point
+            if name in max_user_point_dict:
+                user_point = min(max_user_point_dict[name], point)
+            rate = (user_point / sum_point * 100.0) if is_active_user(name) else 0.0
+            print("| @{} | {} | {} | {:.3}% | {:.3}% |".format(
+                name,
+                point,
+                user_point,
+                base_rate,
+                rate))
     return commit_set
 
 def check_commit_set(commit_set: set[str]) -> None:
@@ -151,6 +156,11 @@ def check_commit_set(commit_set: set[str]) -> None:
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description="")
+    argparser.add_argument("--year",
+                           dest='target_year',
+                           type=int,
+                           default=0,
+                           help="target year")
     argparser.add_argument("--exclude-users",
                            dest='exclude_users_str',
                            type=str,
@@ -168,8 +178,11 @@ if __name__ == '__main__':
                            help="comma separated max point list")
     args = argparser.parse_args()
 
-    receive_users = args.receive_users_str.split(",")
-    exclude_users = args.exclude_users_str.split(",")
+    if args.target_year == 0:
+        raise Exception("you must specify `--year N` option")
+
+    receive_users = [] if len(args.receive_users_str) == 0 else args.receive_users_str.split(",")
+    exclude_users = [] if len(args.exclude_users_str) == 0 else args.exclude_users_str.split(",")
 
     max_user_points = args.max_user_points_str.split(",")
     max_user_point_dict = dict()
@@ -182,13 +195,15 @@ if __name__ == '__main__':
     commit_set = set()
     for p in sorted(list(glob.glob("cpprefjp/site/start_editing/*.md", recursive=True))):
         filename = os.path.basename(p)
-        if not filename.startswith("contribution_stats_"):
+        m = re.fullmatch(r"contribution_stats_([0-9]*?)\.md", filename)
+        if not m:
             continue
 
+        year = int(m[1])
         with open(p) as f:
             text = f.read()
 
         commit_set = commit_set.union(stats_contribution(
-            text, p, receive_users, exclude_users, max_user_point_dict))
+            text, p, year, args.target_year, receive_users, exclude_users, max_user_point_dict))
 
     check_commit_set(commit_set)
