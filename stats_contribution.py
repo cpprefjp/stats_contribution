@@ -27,7 +27,7 @@ point_dict = {
     "tool/fixbug": 30,
     "tool/improves": 10,
     "tool/improvem": 30,
-    "tool/improvem": 50,
+    "tool/improvel": 50,
     "tool/updatelib": 20,
     "tool/updatelang": 10,
     "tool/updatelang": 30,
