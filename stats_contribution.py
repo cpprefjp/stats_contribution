@@ -37,13 +37,23 @@ point_dict = {
     "tool/addl": 100,
 }
 
+target_repos = [
+    "cpprefjp/site",
+    "cpprefjp/site_generator",
+    "cpprefjp/kunai",
+    "cpprefjp/kunai_config",
+    "cpprefjp/crsearch",
+    "cpprefjp/markdown_to_html",
+    "boostjp/site",
+]
+
 def stats_contribution(text: str,
                        filename: str,
                        year: int,
                        target_year: int,
                        receive_users: list[str],
                        exclude_users: list[str],
-                       max_user_point_dict: dict[str, int]) -> set[str]:
+                       max_user_point_dict: dict[str, int]) -> dict[str, set[str]]:
     def is_active_user(name: str) -> bool:
         if len(exclude_users) == 0 and len(receive_users) == 0:
             return True
@@ -51,7 +61,7 @@ def stats_contribution(text: str,
 
     user_name: str | None = None
     user_point = 0
-    commit_set = set()
+    commit_dict: dict[str, set[str]] = dict(set())
 
     users = dict()
     for line in text.split("\n"):
@@ -68,11 +78,22 @@ def stats_contribution(text: str,
         if line.startswith("| ["):
             cols = line.split("|")
 
-            commits = cols[1].split(",")
-            for commit in commits:
-                m = re.fullmatch(r'\[(.*?)\]\((.*?)/commit/(.*?)\)', commit.strip())
-                full_commit_id = m.group(3)
-                commit_set.add(full_commit_id)
+            for m in re.finditer(r'\[commit (.*?)\]', cols[1].strip()):
+                c = m[1].split(", ")
+                repo = c[0]
+                commit_ids = set()
+                for id in c[1:]:
+                    id = id.strip()
+                    if len(id) == 0:
+                        continue
+                    if len(id) != 7:
+                        raise Exception("{}: {} (len:{}) commit-id length should be 7".format(filename, id, len(id)))
+                    commit_ids.add(id)
+
+                if repo in commit_dict:
+                    commit_dict[repo] |= commit_ids
+                else:
+                    commit_dict[repo] = commit_ids
 
             points = cols[2].strip().split(",")
             for point in points:
@@ -81,12 +102,14 @@ def stats_contribution(text: str,
 
                 point_values = point.split(":")
                 point_name = point_values[0].strip()
-                try:
-                    point_quantity = int(point_values[1].strip())
-                except:
-                    print("invalid quantity: {}".format(point))
-                    raise
+                if len(point_values) != 2:
+                    raise Exception("{}: quantity is empty: {}".format(filename, point))
 
+                point_value = point_values[1].strip()
+                if len(point_value) == 0:
+                    raise Exception("{}: invalid quantity: {}".format(filename, point))
+
+                point_quantity = int(point_value)
                 point_value = point_dict.get(point_name)
                 if not point_value:
                     raise KeyError("{}: invalid point tag `{}`".format(filename, point_name))
@@ -118,21 +141,15 @@ def stats_contribution(text: str,
                 user_point,
                 base_rate,
                 rate))
-    return commit_set
+    return commit_dict
 
-def check_commit_set(commit_set: set[str]) -> None:
-    repos = [
-        "cpprefjp/site",
-        "cpprefjp/site_generator",
-        "cpprefjp/kunai",
-        "cpprefjp/kunai_config",
-        "cpprefjp/crsearch",
-        "cpprefjp/markdown_to_html",
-        "boostjp/site",
-    ]
+def check_commit_dict(commit_dict: dict[str, set[str]]) -> None:
+    for repo in commit_dict.keys():
+        if repo not in target_repos:
+            raise Exception("unknown repo name:{}".format(repo))
 
     commit_log_set = set()
-    for repo in repos:
+    for repo in target_repos:
         wd = os.getcwd()
         command = "git log --after \'2023-01-01\' --pretty=oneline --no-merges".split(" ")
         os.chdir(repo)
@@ -143,16 +160,20 @@ def check_commit_set(commit_set: set[str]) -> None:
             return
         os.chdir(wd)
 
+        commit_set: set[str] = set()
         for line in out.decode().split("\n"):
             if len(line) <= 0:
                 continue
             cols = line.split(" ")
-            full_commit_id = cols[0]
-            commit_log_set.add(full_commit_id)
+            commit_id = cols[0][:7]
+            if len(commit_id) != 7:
+                raise Exception("git log: {} commit-id length should be 7".format(commit_id))
+            commit_set.add(commit_id)
 
-    diff = commit_log_set - commit_set
-    if len(diff) > 0:
-        print("unstats commits: {}\n{}".format(len(diff), diff))
+        repo_commit_set: set[str] = commit_dict[repo] if repo in commit_dict else set()
+        diff = commit_set - repo_commit_set
+        if len(diff) > 0:
+            print("unstats commits {}: {}\n{}".format(repo, len(diff), diff))
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description="")
@@ -192,7 +213,7 @@ if __name__ == '__main__':
         values = s.split("=")
         max_user_point_dict[values[0]] = int(values[1])
 
-    commit_set = set()
+    commit_dict: dict[str, set[str]] = dict(set())
     for p in sorted(list(glob.glob("cpprefjp/site/start_editing/*.md", recursive=True))):
         filename = os.path.basename(p)
         m = re.fullmatch(r"contribution_stats_([0-9]*?)\.md", filename)
@@ -203,7 +224,21 @@ if __name__ == '__main__':
         with open(p) as f:
             text = f.read()
 
-        commit_set = commit_set.union(stats_contribution(
-            text, p, year, args.target_year, receive_users, exclude_users, max_user_point_dict))
+        commits = stats_contribution(
+            text,
+            p,
+            year,
+            args.target_year,
+            receive_users,
+            exclude_users,
+            max_user_point_dict
+        )
+        for repo in target_repos:
+            repo_commits: set[str] = commits[repo] if repo in commits else set()
 
-    check_commit_set(commit_set)
+            if repo in commit_dict:
+                commit_dict[repo] |= repo_commits
+            else:
+                commit_dict[repo] = repo_commits
+
+    check_commit_dict(commit_dict)
