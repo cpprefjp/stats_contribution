@@ -53,15 +53,20 @@ def stats_contribution(text: str,
                        target_year: int,
                        receive_users: list[str],
                        exclude_users: list[str],
-                       max_user_point_dict: dict[str, int]) -> dict[str, set[str]]:
+                       max_user_point_dict: dict[str, int],
+                       additional_user_point_dict: dict[str, int]) -> dict[str, set[str]]:
     def is_active_user(name: str) -> bool:
-        if len(exclude_users) == 0 and len(receive_users) == 0:
+        if name in exclude_users:
+            return False
+        if len(receive_users) == 0:
             return True
-        return (not name in exclude_users) and (len(receive_users) > 0 and name in receive_users);
+        return name in receive_users;
 
     user_name: str | None = None
     user_point = 0
     commit_dict: dict[str, set[str]] = dict(set())
+
+    is_target_year = year == target_year
 
     users = dict()
     for line in text.split("\n"):
@@ -122,16 +127,20 @@ def stats_contribution(text: str,
         base_sum_point += point
         if is_active_user(name):
             user_point = point
+            if name in additional_user_point_dict:
+                user_point += additional_user_point_dict[name]
             if name in max_user_point_dict:
                 user_point = min(max_user_point_dict[name], point)
             sum_point += user_point
 
-    if year == target_year:
+    if is_target_year:
         print("| user | base points | points | base rate | rate |")
         print("|------|-------------|--------|-----------|------|")
         for name, point in sorted(users.items(), key=lambda item: item[1], reverse=True):
             base_rate = point / base_sum_point * 100.0
             user_point = point
+            if name in additional_user_point_dict:
+                user_point += additional_user_point_dict[name]
             if name in max_user_point_dict:
                 user_point = min(max_user_point_dict[name], point)
             rate = (user_point / sum_point * 100.0) if is_active_user(name) else 0.0
@@ -197,6 +206,11 @@ if __name__ == '__main__':
                            type=str,
                            default="",
                            help="comma separated max point list")
+    argparser.add_argument("--additional-user-points",
+                           dest='additional_user_points_str',
+                           type=str,
+                           default="",
+                           help="comma separated additional point list")
     args = argparser.parse_args()
 
     if args.target_year == 0:
@@ -212,6 +226,14 @@ if __name__ == '__main__':
             continue
         values = s.split("=")
         max_user_point_dict[values[0]] = int(values[1])
+
+    additional_user_points = args.additional_user_points_str.split(",")
+    additional_user_point_dict = dict()
+    for s in additional_user_points:
+        if len(s) == 0:
+            continue
+        values = s.split("=")
+        additional_user_point_dict[values[0]] = int(values[1])
 
     commit_dict: dict[str, set[str]] = dict(set())
     for p in sorted(list(glob.glob("cpprefjp/site/start_editing/*.md", recursive=True))):
@@ -231,7 +253,8 @@ if __name__ == '__main__':
             args.target_year,
             receive_users,
             exclude_users,
-            max_user_point_dict
+            max_user_point_dict,
+            additional_user_point_dict
         )
         for repo in target_repos:
             repo_commits: set[str] = commits[repo] if repo in commits else set()
