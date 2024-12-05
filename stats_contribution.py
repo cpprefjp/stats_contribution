@@ -134,8 +134,11 @@ def stats_contribution(text: str,
             sum_point += user_point
 
     if is_target_year:
-        print("| user | base points | points | base rate | rate |")
-        print("|------|-------------|--------|-----------|------|")
+        print("| No. | user | base point | point | base rate | rate |")
+        print("|-----|------|------------|-------|-----------|------|")
+        number = 0
+        acc_number = 0
+        prev_point = 0
         for name, point in sorted(users.items(), key=lambda item: item[1], reverse=True):
             base_rate = point / base_sum_point * 100.0
             user_point = point
@@ -143,8 +146,17 @@ def stats_contribution(text: str,
                 user_point += additional_user_point_dict[name]
             if name in max_user_point_dict:
                 user_point = min(max_user_point_dict[name], point)
+
+            if prev_point == 0 or point != prev_point:
+                number += 1 + acc_number
+                acc_number = 0
+            else:
+                acc_number += 1
+            prev_point = point
+
             rate = (user_point / sum_point * 100.0) if is_active_user(name) else 0.0
-            print("| @{} | {} | {} | {:.3}% | {:.3}% |".format(
+            print("| {} | @{} | {} | {} | {:.3}% | {:.3}% |".format(
+                number,
                 name,
                 point,
                 user_point,
