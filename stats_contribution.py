@@ -29,12 +29,14 @@ point_dict = {
     "tool/improvem": 30,
     "tool/improvel": 50,
     "tool/updatelib": 20,
+    "tool/security": 50,
     "tool/updatelang": 10,
     "tool/updatelang": 30,
     "tool/updatelang": 50,
     "tool/adds": 30,
     "tool/addm": 50,
     "tool/addl": 100,
+    "ignore": 0,
 }
 
 target_repos = [
@@ -91,8 +93,8 @@ def stats_contribution(text: str,
                     id = id.strip()
                     if len(id) == 0:
                         continue
-                    if len(id) != 7:
-                        raise Exception("{}: {} (len:{}) commit-id length should be 7".format(filename, id, len(id)))
+                    if len(id) < 7:
+                        raise Exception("{}: {} (len:{}) commit-id length should be greater than or equal 7".format(filename, id, len(id)))
                     commit_ids.add(id)
 
                 if repo in commit_dict:
@@ -108,16 +110,17 @@ def stats_contribution(text: str,
                 point_values = point.split(":")
                 point_name = point_values[0].strip()
                 if len(point_values) != 2:
-                    raise Exception("{}: quantity is empty: {}".format(filename, point))
+                    if point_name != "ignore":
+                        raise Exception("{}: quantity is empty: {}".format(filename, point))
 
-                point_value = point_values[1].strip()
+                point_value = point_values[1].strip() if len(point_values) == 2 else "1"
                 if len(point_value) == 0:
                     raise Exception("{}: invalid quantity: {}".format(filename, point))
 
                 point_quantity = int(point_value)
                 point_value = point_dict.get(point_name)
-                if not point_value:
-                    raise KeyError("{}: invalid point tag `{}`".format(filename, point_name))
+                if point_value is None:
+                    raise KeyError("{}: invalid point tag `{}`, line:{}".format(filename, point_name, line))
                 user_point += point_value * point_quantity
             users[user_name] = user_point
 
@@ -164,6 +167,19 @@ def stats_contribution(text: str,
                 rate))
     return commit_dict
 
+def diff_commit_set(commit_log_set: set[str], stats_commit_set: set[str]) -> set[str]:
+    diff = commit_log_set - stats_commit_set
+    if len(diff) > 0:
+        remove_commit_set: set[str] = set()
+        for commit in diff:
+            for stats_commit in stats_commit_set:
+                if stats_commit.startswith(commit):
+                    remove_commit_set.add(commit)
+                    break
+        for commit in remove_commit_set:
+            diff.remove(commit)
+    return diff
+
 def check_commit_dict(commit_dict: dict[str, set[str]]) -> None:
     for repo in commit_dict.keys():
         if repo not in target_repos:
@@ -192,7 +208,7 @@ def check_commit_dict(commit_dict: dict[str, set[str]]) -> None:
             commit_set.add(commit_id)
 
         repo_commit_set: set[str] = commit_dict[repo] if repo in commit_dict else set()
-        diff = commit_set - repo_commit_set
+        diff = diff_commit_set(commit_set, repo_commit_set)
         if len(diff) > 0:
             print("unstats commits {}: {}\n{}".format(repo, len(diff), diff))
 
