@@ -49,6 +49,11 @@ target_repos = [
     "boostjp/site",
 ]
 
+def compress_user_point(point: int, year: int) -> int:
+    if year < 2025:
+        return point
+    return int(pow(point, 0.36))
+
 def stats_contribution(text: str,
                        filename: str,
                        year: int,
@@ -130,11 +135,13 @@ def stats_contribution(text: str,
         base_sum_point += point
         if is_active_user(name):
             user_point = point
+            # ポイント譲渡
             if name in additional_user_point_dict:
                 user_point += additional_user_point_dict[name]
+            # 上限ポイントの設定
             if name in max_user_point_dict:
                 user_point = min(max_user_point_dict[name], point)
-            sum_point += user_point
+            sum_point += compress_user_point(user_point, year)
 
     if is_target_year:
         print("| No. | user | base point | point | base rate | rate |")
@@ -149,6 +156,7 @@ def stats_contribution(text: str,
                 user_point += additional_user_point_dict[name]
             if name in max_user_point_dict:
                 user_point = min(max_user_point_dict[name], point)
+            user_point = compress_user_point(user_point, year)
 
             if prev_point == 0 or point != prev_point:
                 number += 1 + acc_number
