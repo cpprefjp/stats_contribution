@@ -1,1 +1,1 @@
-sh run.sh --year 2025
+sh run.sh --year 2025 --max-user-points faithandbrave=5646 --exclude-users take-cheeze,Gumichocopengin8,dsugiyama,50c0019uy,TumoiYorozu,k-satoda,0xbadfca11,kenichiice,tshino --receive-users faithandbrave,hrjp,y121516,yohhoy,suomesta,math-hiyoko,biobios,h-sao,Raclamusi,wx257osn2,akinomyoga,rotarymars,K10-K10,zer0-star

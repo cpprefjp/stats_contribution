@@ -3,7 +3,7 @@ cd cpprefjp
 git clone https://github.com/cpprefjp/site.git
 cd site
 git pull
-git checkout contribution_stats_2025
+git checkout master
 cd ..
 
 git clone https://github.com/cpprefjp/site_generator.git
