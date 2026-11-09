@@ -80,8 +80,31 @@ for repo in REPOS:
             if ml and ml[-1]:
                 man, mae = ml[-1].split("|")
                 merged_by = login(man, mae)
+        # dependabotの更新で、実際に更新された「直接使用のライブラリ」の名前を集める。
+        # package-lock.json 以外のファイルの差分に現れる依存の名前が直接使用のもの。
+        dep_names = []
+        if merged_by:
+            diff = run(repo, ["show", "-U0", "--pretty=", "--no-color", h])
+            cur = None
+            for line in diff.split("\n"):
+                if line.startswith("diff --git "):
+                    m2 = re.match(r"diff --git a/(.*) b/(.*)", line)
+                    cur = m2.group(2) if m2 else None
+                    continue
+                if not cur or cur.endswith("package-lock.json"):
+                    continue
+                if not line.startswith("+") or line.startswith("+++"):
+                    continue
+                body = line[1:]
+                m2 = re.search(r'"([^"]+)"\s*:\s*"[~^>=<0-9]', body)        # package.json
+                if not m2:
+                    m2 = re.search(r"uses:\s*([\w.-]+/[\w.-]+)@", body)      # ワークフロー
+                if not m2:
+                    m2 = re.match(r"\s*([A-Za-z][\w.-]*)\s*[=~><]=", body)  # requirements.txt
+                if m2 and m2.group(1) not in dep_names:
+                    dep_names.append(m2.group(1))
         out.append({"repo":repo,"hash":h[:7],"date":date,"login":login(an,ae),
-                    "merged_by":merged_by,
+                    "merged_by":merged_by,"dep_names":dep_names,
                     "author":an,"email":ae,"subject":subject.strip(),
                     "coauthors":[c for c in cos if c],"files":files})
 json.dump(out, open(sys.argv[1],"w"), ensure_ascii=False, indent=None)

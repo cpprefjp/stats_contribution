@@ -17,6 +17,30 @@ for line in out.split("\n"):
 def comp(v):
     return int(pow(v, 0.36)) if v > 0 else 0
 
+# 各ユーザーについて、1行のタグを1段階上げ下げしたときの最大の点差を求める
+import json as _json
+max_swing = {}
+try:
+    _rows = _json.load(open("auto_stats/out/rows_grouped.json"))
+    import stats_contribution as _sc
+    ORDER = ["cpprefjp/typo", "cpprefjp/link", "cpprefjp/fixs", "cpprefjp/fixm",
+             "cpprefjp/fixl", "cpprefjp/addref"]
+    for _r in _rows:
+        best = 0
+        for k, v in _r["tags"].items():
+            cur = _sc.point_dict.get(k, 0)
+            if k in ORDER:
+                i = ORDER.index(k)
+                near = [_sc.point_dict[ORDER[j]] for j in (i - 1, i + 1)
+                        if 0 <= j < len(ORDER)]
+            else:
+                near = [0]
+            best = max([best] + [abs(cur - p2) * v for p2 in near] + [cur * v])
+        for who in [_r["login"]] + list(_r.get("coauthors", [])):
+            max_swing[who] = max(max_swing.get(who, 0), best)
+except Exception:
+    pass
+
 total = sum(p for _, _, p in rows) or 1
 print("1枠あたりの分配率: %.3f%%  (総枠 %d)" % (100.0 / total, total))
 print("%-18s %9s %5s %10s %12s" % ("user", "base", "枠", "次枠まで", "下の境界まで"))
@@ -26,9 +50,12 @@ for u, b, p in rows:
     up = next((v - b for v in range(b, b * 4 + 20) if comp(v) > p), None)
     dn = next((b - v for v in range(b, 0, -1) if comp(v) < p), None)
     mark = ""
-    # 1行の判定 (typo 1点〜fixl 10点) で枠が動く人を目視確認の対象にする
-    if (up is not None and up <= 10) or (dn is not None and dn <= 10):
-        mark = "  <- 1行の判定で枠が動く"
+    # 1行のタグを1段階付け替えたときの点差が境界までの距離を超える人を、
+    # 目視確認の対象にする。1行で数百〜数千点動く行があるため、固定の
+    # しきい値では「いちばん動く人」が検出から漏れる。
+    swing = max_swing.get(u, 0)
+    if (up is not None and swing >= up) or (dn is not None and swing >= dn):
+        mark = "  <- 1行の判定で枠が動く (最大%d点)" % swing
     print("%-18s %9d %5d %10s %12s%s" % (
         u, b, p, "+%d" % up if up is not None else "-",
         "-%d" % dn if dn is not None else "-", mark))

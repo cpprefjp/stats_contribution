@@ -10,7 +10,7 @@ TYPO = re.compile(r"(?i)typo|タイポ|誤字|脱字|スペル|misspell|誤記|�
 # (提案文書番号・LWG/CWG Issue・C++バージョン) と、それへの追従を表す動詞の
 # 両方がある場合に限る。本サイト側の書き間違いの修正と区別するため。
 SPEC_REF = re.compile(r"(?i)P\d{4}R\d+|LWG\s?\d+|CWG\s?\d+|C\+\+\d\d|mailing|deprecat")
-SPEC_ACT = re.compile(r"対応|適用|準拠|反映|追従|非推奨|削除|追加|変更|deprecat")
+SPEC_ACT = re.compile(r"対応|適用|準拠|反映|追従|非推奨|削除|追加|変更|規定|明確化|訂正|許可|見直|書き分け|取り消|取り下げ|先送り|繰り越|deprecat")
 def is_spec(subject):
     return bool(SPEC_REF.search(subject) and SPEC_ACT.search(subject))
 # 参照規格案の番号やURLの更新は、仕様記述の変更ではなく参照の更新
@@ -54,7 +54,7 @@ FIXM_MAX = int(os.environ.get("FIXM_MAX", "40"))
 LINKSUBJ = re.compile(r"(?i)リンク|関連項目|nolink|\blinks?\b|参照を")
 MISTAKE = re.compile(r"誤り|間違|になっていた|が逆|抜け|漏れ|のままだった|食い違|ミスを修正|ミスを直|コピーに|重複|異なってい|存在しない|コピペ|取り違|入れ替わ|不足")
 SPONSOR = re.compile(r"(?i)スポンサー|sponsor")
-REVERT  = re.compile(r"(?i)^revert|巻き戻|取り消")
+REVERT  = re.compile(r"(?i)^revert|巻き戻")
 # 同じ人が同年に作成したページを記録する。
 # そのページへの後からの追記は、作成したときの作業にまとめる (ルールの注意事項)。
 CREATED = {}
@@ -200,14 +200,9 @@ for c in commits:
             if direct:
                 # 「直接使用のライブラリ単位」で数える。dependabotの件名は
                 # "Bump X from a to b" / "Bump X and Y" / "Bump X, Y and Z" の形。
-                m_bump = re.search(r"(?i)bump\s+(.*?)(?:\s+from\s|\s+in\s|$)", subj)
-                names = []
-                if m_bump:
-                    for part in re.split(r",|\s+and\s+", m_bump.group(1)):
-                        part = part.strip()
-                        if part:
-                            names.append(part)
-                cnt = max(1, len(names))
+                # 件名のライブラリ名には推移的依存も並ぶため、実際に差分に現れた
+                # 直接使用のライブラリの数で数える
+                cnt = max(1, len(c.get("dep_names") or []))
                 tags = Counter({"tool/updatelib": cnt}); details = ["bot-merge"]
                 subj = subj + " (dependabotのPRを動作確認してマージ)"
             else:

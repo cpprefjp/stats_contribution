@@ -146,3 +146,34 @@ f9afc16 cpprefjp/fixl:1, cpprefjp/fixm:1
 82fa1ac cpprefjp/fixl:1
 # C++98の宣言に例外仕様 throw() が欠けていたのを補完。cpprefjp側の書き漏れなので
 # 仕様変更への対応ではなく fixm (自動分類のまま)
+# --- レビュー2巡目: 仕様変更の判定の誤発火 (本サイト側の書き漏れ・書き間違いなので fixm) ---
+# C++98の宣言に欠けていた例外仕様 throw() の補完。件名の「C++98」+「追加」で
+# 仕様変更と判定されていたが、規格の変更ではなく本サイト側の書き漏れ
+0d45db6 cpprefjp/fixm:1
+252ca93 cpprefjp/fixm:1
+6b1b7b1 cpprefjp/fixm:1
+7759d18 cpprefjp/fixm:1
+# 戻り値節の書き漏れの補完
+5c1d400 cpprefjp/fixm:4
+# 実装例が C++20 で削除された機能を使っていたのを修正
+ff5365a cpprefjp/fixm:5
+# 雛形ページへのHTMLコメントの追記。規格の変更ではない
+d25f22d cpprefjp/fixm:10
+# --- 規格側の誤り訂正 (DR) の適用。件名の「漏れ」「誤り」で判定が止まっていた ---
+cd95011 cpprefjp/fixl:1
+5baf178 cpprefjp/fixl:1
+# --- 記号の位置だけが変わるが意味が変わる修正 (空白・記法の判定の限界) ---
+# 閉じ波カッコの位置。実装例が常に先頭を返すバグの修正
+509f38a cpprefjp/fixm:1
+# *FILE -> FILE* 。存在しない型表記の修正
+4ab4bc7 cpprefjp/fixm:3
+# x > |1| -> |x| > 1 。条件式の誤り (同一コミットの acos.md は fixm)
+7b1e351 cpprefjp/fixm:2
+# --- 件名の「統一」に反応したが内容のある修正 ---
+e2c050d cpprefjp/fixm:1
+64298be cpprefjp/fixm:1
+20774a1 cpprefjp/fixm:1
+65ecfd7 cpprefjp/fixm:1
+# formattable : コミット本文に「C++23規格に合わせて、説明専用コンセプト
+# formattable-with を使った説明に更新」とあり、仕様変更への対応にあたる
+641ed17 cpprefjp/fixl:1

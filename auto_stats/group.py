@@ -139,6 +139,17 @@ if MERGE:
         for h in rows[i]["hashes"]:
             pos[h] = j
 
+# まとめた結果が1ページだけの行は、「同ページ内に対する複数の修正は、大きい
+# 貢献ポイントにまとめる」というルールに従い、もっとも大きいタグだけを残す
+for i, r in enumerate(rows):
+    if i in dropped or len(r["hashes"]) < 2 or len(r["pages"]) != 1:
+        continue
+    cand = {k: v for k, v in r["tags"].items() if k != "ignore"}
+    if len(cand) < 2:
+        continue
+    best = max(cand, key=lambda k: sc.point_dict.get(k, 0))
+    r["tags"] = {best: cand[best]}
+
 out = [r for i, r in enumerate(rows) if i not in dropped]
 for r in out:
     r["pages"] = list(r["pages"]); r.pop("papers", None)
