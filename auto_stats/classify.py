@@ -113,6 +113,7 @@ for c in commits:
         if st == "D":
             tags["ignore"] += 1; details.append(path+":D"); continue
         if n == 0:
+            # 変更行が空白だけ、またはリネームのみで、読者に見える差がない
             tags["ignore"] += 1; details.append(path+":empty"); continue
         if path == "implementation-status.md":
             if re.search(r"(?i)link|リンク", subj):
