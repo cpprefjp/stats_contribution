@@ -134,13 +134,9 @@ e42919d cpprefjp/fixs:10
 # make_format_args は宣言の仕様変更 (P2905R2)、vformat はサンプルコードの修正
 f9afc16 cpprefjp/fixl:1, cpprefjp/fixm:1
 # 圧縮境界の近くにいるユーザーの行を差分で個別確認した結果 (2026年)
-# formattable コンセプトの仕様記述を規格に合わせて書き換え
-641ed17 cpprefjp/fixl:1
+# formattable コンセプトの仕様記述の書き間違いを規格に合わせて修正 (仕様変更ではない)
 7884e2f ignore
 # basic_format_arg のコンストラクタにC++20/C++23の適格要件の書き分けを追加
 82fa1ac cpprefjp/fixl:1
-# C++98の宣言に欠けていた例外仕様 throw() を追加 (仕様記述のバグ修正)
-0d45db6 cpprefjp/fixl:1
-252ca93 cpprefjp/fixl:1
-6b1b7b1 cpprefjp/fixl:1
-7759d18 cpprefjp/fixl:1
+# C++98の宣言に例外仕様 throw() が欠けていたのを補完。cpprefjp側の書き漏れなので
+# 仕様変更への対応ではなく fixm (自動分類のまま)

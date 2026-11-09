@@ -71,7 +71,17 @@ for repo in REPOS:
                 status[c[-1]] = c[0][0]
         for f in files:
             f["status"] = status.get(f["path"], "M")
+        # dependabotのコミットは、動作確認してマージした人の貢献として扱うため、
+        # そのコミットをmasterへ取り込んだマージコミットの作者を記録する
+        merged_by = None
+        if login(an, ae) == "dependabot[bot]":
+            ml = run(repo, ["log","--ancestry-path","--merges","--format=%an|%ae",
+                            h + ".." + REV]).strip().split("\n")
+            if ml and ml[-1]:
+                man, mae = ml[-1].split("|")
+                merged_by = login(man, mae)
         out.append({"repo":repo,"hash":h[:7],"date":date,"login":login(an,ae),
+                    "merged_by":merged_by,
                     "author":an,"email":ae,"subject":subject.strip(),
                     "coauthors":[c for c in cos if c],"files":files})
 json.dump(out, open(sys.argv[1],"w"), ensure_ascii=False, indent=None)

@@ -42,6 +42,7 @@ if ovp and os.path.exists(ovp):
 
 FIXM_MAX = int(os.environ.get("FIXM_MAX", "40"))
 LINKSUBJ = re.compile(r"(?i)リンク|関連項目|nolink|\blinks?\b|参照を")
+MISTAKE = re.compile(r"誤り|間違|になっていた|が逆|抜けて|漏れて|のままだった|食い違|ミスを修正|コピーに|重複し")
 SPONSOR = re.compile(r"(?i)スポンサー|sponsor")
 REVERT  = re.compile(r"(?i)^revert|巻き戻|取り消")
 rows = []
@@ -117,7 +118,7 @@ for c in commits:
             else:
                 tags[pfx+"fixs"] += 1; details.append("%s:fixs(inc,%d)" % (path, n))
             continue
-        if SPEC.search(subj):
+        if SPEC.search(subj) and not MISTAKE.search(subj):
             tags[pfx+"fixl"] += 1; details.append("%s:fixl*(%d)" % (path, n)); continue
         if subst:
             tags[pfx+"fixm"] += 1; details.append("%s:fixm~(%d)" % (path, n)); continue
@@ -148,8 +149,16 @@ for c in commits:
         tags = Counter({"ignore": 1}); manual = False; details = ["package-lock"]
     if "boostjp/fixl" in tags:
         tags["boostjp/fixm"] += tags.pop("boostjp/fixl")
-    if c["login"] in ("dependabot[bot]",):
-        tags = Counter({"ignore": 1}); manual = False; details = ["bot"]
+    login_ = c["login"]
+    if login_ in ("dependabot[bot]",):
+        # dependabot自身は貢献ポイントの対象外。ただし動作確認してマージした作業には
+        # 価値があるため、マージした人の依存ライブラリ更新として計上する
+        if c.get("merged_by"):
+            login_ = c["merged_by"]
+            tags = Counter({"tool/improves": 1}); manual = False; details = ["bot-merge"]
+            subj = subj + " (dependabotのPRを動作確認してマージ)"
+        else:
+            tags = Counter({"ignore": 1}); manual = False; details = ["bot"]
     # 人が明示した上書きは、自動ルールより後に適用して必ず最終結果に残す
     if c["hash"] in OV:
         d, add = OV[c["hash"]]
@@ -159,8 +168,8 @@ for c in commits:
             tags = Counter(d); details = ["OVERRIDE"]
         manual = False
     cos = [x for x in c["coauthors"] if x not in ("Copilot","copilot","dependabot[bot]","github-actions[bot]")
-           and not x.lower().startswith(("claude", "gpt", "gemini")) and x != c["login"]]
-    rows.append({"repo":repo,"hash":c["hash"],"date":c["date"],"login":c["login"],
+           and not x.lower().startswith(("claude", "gpt", "gemini")) and x != login_]
+    rows.append({"repo":repo,"hash":c["hash"],"date":c["date"],"login":login_,
                  "subject":subj,"coauthors":cos,
                  "tags":dict(tags),"details":details,"manual":manual,
                  "pages":sorted(x["path"] for x in c["files"] if x["path"].endswith(".md")),

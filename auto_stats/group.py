@@ -100,6 +100,37 @@ for i in order:
     for k in keys:
         owner[k] = i
 
+# data/merge.txt で、まとめ先を人が明示した分を適用する。
+# 「同年内の当人による同ページへの複数の修正はまとめる場合がある」のうち、
+# 自動判定の条件 (30日以内・5ページ以下など) から外れるものを手で指定する。
+MERGE = []
+mp = sys.argv[4] if len(sys.argv) > 4 else None
+if mp and os.path.exists(mp):
+    for line in open(mp):
+        line = line.split("#")[0].strip()
+        if not line:
+            continue
+        cols = line.split()
+        if len(cols) >= 2:
+            MERGE.append((cols[0], cols[1]))
+if MERGE:
+    pos = {}
+    for i, r in enumerate(rows):
+        if i in dropped:
+            continue
+        for h in r["hashes"]:
+            pos[h] = i
+    for absorbed, target in MERGE:
+        i, j = pos.get(absorbed), pos.get(target)
+        if i is None or j is None or i == j:
+            print("WARNING: merge %s -> %s を適用できない" % (absorbed, target))
+            continue
+        rows[j]["hashes"].extend(rows[i]["hashes"])
+        rows[j]["coauthors"] = sorted(set(rows[j]["coauthors"]) | set(rows[i]["coauthors"]))
+        dropped.add(i)
+        for h in rows[i]["hashes"]:
+            pos[h] = j
+
 out = [r for i, r in enumerate(rows) if i not in dropped]
 for r in out:
     r["pages"] = list(r["pages"]); r.pop("papers", None)

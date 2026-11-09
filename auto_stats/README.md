@@ -25,6 +25,13 @@ sh auto_stats/run_2026.sh      # out/contribution_stats_2026.md を生成
 | `group.py`    | 同一ページへの追随コミットと、同一Pull Request内の微調整コミットをひとつの行にまとめる |
 | `gen_md.py`   | 集計ファイルのMarkdownを出力する。`data/groups.txt` で複数コミットを明示的に1行にでき、`data/extra.txt` で期間外のコミット (後からマージされたPull Requestなど) を足せる |
 
+`data/merge.txt` に `<吸収するコミット> <まとめ先のコミット>` を書くと、自動判定の
+条件 (30日以内・5ページ以下など) から外れるものを手でまとめられる。ポイントは
+まとめ先のものをそのまま使う。
+
+ボット (dependabot) のコミットは、`collect.py` がマージコミットの作者を記録し、
+`classify.py` がその人の `tool/improves` として計上する。
+
 ## 校正
 
 前年の集計ファイルを正解として精度を測れる。
