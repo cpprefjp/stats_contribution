@@ -155,7 +155,8 @@ for c in commits:
         # 価値があるため、マージした人の依存ライブラリ更新として計上する
         if c.get("merged_by"):
             login_ = c["merged_by"]
-            tags = Counter({"tool/improves": 1}); manual = False; details = ["bot-merge"]
+            # 依存ライブラリの更新なので updatelib。1つのPRで1ライブラリが基本
+            tags = Counter({"tool/updatelib": 1}); manual = False; details = ["bot-merge"]
             subj = subj + " (dependabotのPRを動作確認してマージ)"
         else:
             tags = Counter({"ignore": 1}); manual = False; details = ["bot"]

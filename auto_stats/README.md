@@ -30,7 +30,7 @@ sh auto_stats/run_2026.sh      # out/contribution_stats_2026.md を生成
 まとめ先のものをそのまま使う。
 
 ボット (dependabot) のコミットは、`collect.py` がマージコミットの作者を記録し、
-`classify.py` がその人の `tool/improves` として計上する。
+`classify.py` がその人の `tool/updatelib` として計上する。
 
 ## 校正
 

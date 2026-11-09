@@ -5,7 +5,7 @@
 f375117 tool/fixbug:1
 1a8ea72 tool/improves:1
 4124197 tool/improvem:1
-a242be8 tool/adds:1
+a242be8 tool/addl:1
 4eac882 tool/fixbug:1
 1431546 tool/improvem:1
 8287cbc tool/adds:1
@@ -62,7 +62,7 @@ a3baa11 ignore
 c72a50b tool/fixbug:1
 aee9f0e ignore
 c0cf27c ignore
-4eee9e4 tool/adds:1
+4eee9e4 tool/addl:1
 # requirements.txtで4ライブラリ更新 + Python本体の更新 (コード変更なしのsmall)
 a9ca74e tool/updatelib:4, tool/updatelangs:1
 addee97 tool/updatelib:1
@@ -84,8 +84,8 @@ e44da74 ignore
 501f1d2 tool/improves:1
 ec442d4 ignore
 92dbf35 tool/improves:1
-e56c8db tool/fixbug:1
-b0efad8 tool/adds:1
+e56c8db ignore
+b0efad8 tool/addl:1
 ac7f862 tool/updatelangs:1
 1c66125 tool/improves:1
 356a5cc ignore
