@@ -64,7 +64,7 @@ for c in sorted(commits, key=lambda x: x["date"]):
             CREATED.setdefault((c["repo"], c["login"], f["path"]), c["date"])
 # 自分が作成したページへの追記としてまとめる対象のタグ。
 # fixl* (件名から仕様変更と判定したもの) と compiler は対象外。
-SELF_FOLD = re.compile(r"(typo|link|fixs|fixm|fixl)(?![*\w])")
+SELF_FOLD = re.compile(r"(typo|link|fixs|fixm|fixl|add-support)(?![*\w])")
 
 rows = []
 for c in commits:
@@ -225,7 +225,10 @@ for c in commits:
             continue
         if CREATED.get((repo, c["login"], dpath), "9999") > c["date"]:
             continue
-        k = pfx0 + m.group(1)
+        name = m.group(1)
+        if name == "add-support":
+            name = "link"
+        k = pfx0 + name
         if tags.get(k, 0) > 0:
             tags[k] -= 1
             if tags[k] == 0:
@@ -251,19 +254,6 @@ for c in commits:
                  "pages":sorted(x["path"] for x in c["files"] if x["path"].endswith(".md")),
                  "nfiles":len(c["files"])})
 json.dump(rows, open(sys.argv[3],"w"), ensure_ascii=False)
-
-# 上書き指定が最終結果に残っているかを検査する
-byhash = {r["hash"]: r for r in rows}
-for h, (d, add) in OV.items():
-    r = byhash.get(h)
-    if r is None:
-        print("WARNING: override %s はどのコミットにも対応しない" % h); continue
-    if add:
-        bad = [k for k, v in d.items() if r["tags"].get(k, 0) < v]
-    else:
-        bad = [k for k, v in d.items() if r["tags"].get(k) != v]
-    if bad:
-        print("WARNING: override %s が反映されていない: 指定=%s 実際=%s" % (h, d, r["tags"]))
 
 # summary
 per = Counter()

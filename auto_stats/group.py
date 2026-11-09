@@ -28,6 +28,7 @@ def pt(t): return sum(sc.point_dict.get(k,0)*v for k,v in t.items())
 def d(s): return datetime.date(*map(int, s.split("-")))
 
 for r in rows:
+    r["all_pages"] = tuple(r.get("pages", []))
     r["pages"] = tuple(p for p in r.get("pages", []) if not HUB.match(p))
     r["hashes"] = [r["hash"]]
     r["papers"] = set(m.group(1).replace(" ","").upper() for m in PAPER.finditer(r["subject"]))
@@ -64,7 +65,9 @@ for i in order:
         for pn in prs(r):
             k = (r["repo"], r["login"], "PR#" + pn)
             j = pr_owner.get(k)
-            if j is None or j == i:
+            if j is None or j == i or j in dropped:
+                # まとめ先がすでに別の行に吸収されている場合は使わない。
+                # そのまままとめるとハッシュがどの行にも現れなくなる
                 continue
             p = rows[j]
             if (d(r["date"]) - d(p.get("date_last", p["date"]))).days > PRWINDOW:
@@ -142,7 +145,7 @@ if MERGE:
 # まとめた結果が1ページだけの行は、「同ページ内に対する複数の修正は、大きい
 # 貢献ポイントにまとめる」というルールに従い、もっとも大きいタグだけを残す
 for i, r in enumerate(rows):
-    if i in dropped or len(r["hashes"]) < 2 or len(r["pages"]) != 1:
+    if i in dropped or len(r["hashes"]) < 2 or len(r.get("all_pages", r["pages"])) != 1:
         continue
     cand = {k: v for k, v in r["tags"].items() if k != "ignore"}
     if len(cand) < 2:
@@ -152,7 +155,7 @@ for i, r in enumerate(rows):
 
 out = [r for i, r in enumerate(rows) if i not in dropped]
 for r in out:
-    r["pages"] = list(r["pages"]); r.pop("papers", None)
+    r["pages"] = list(r["pages"]); r.pop("papers", None); r.pop("all_pages", None)
 json.dump(out, open(sys.argv[2], "w"), ensure_ascii=False)
 json.dump(sorted(rows[i]["hash"] for i in dropped), open(sys.argv[2]+".dropped", "w"))
 print("rows: %d -> %d (merged %d)" % (len(rows), len(out), len(dropped)))

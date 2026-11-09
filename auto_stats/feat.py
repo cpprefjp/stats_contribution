@@ -87,7 +87,7 @@ for repo in REPOS:
                 fmt_only = bool(pairs) and all(
                     set(a) <= FMT and set(b) <= FMT for a, b in pairs)
             META_RE = re.compile(r"^\s*\*\s.*\[meta ")
-            INC_RE = re.compile(r"^\s*#include")
+            INC_RE = re.compile(r"^\s*#\s*(include|define|if|ifdef|ifndef|else|elif|endif|pragma|undef|error)\b")
             QUAL_RE = re.compile(r"^\s*\*\s.*\[(link|color|italic|bold)[ \]]")
             meta_only = bool(body) and all(META_RE.match(l) for l in body)
             qualify_only = (bool(body) and not meta_only

@@ -52,6 +52,8 @@ target_repos = [
 def compress_user_point(point: int, year: int) -> int:
     if year < 2025:
         return point
+    if point <= 0:
+        return 0
     return int(pow(point, 0.36))
 
 def stats_contribution(text: str,
@@ -79,8 +81,12 @@ def stats_contribution(text: str,
     for line in text.split("\n"):
         m = re.fullmatch(r'## (.*?)', line)
         if m:
-            m = re.fullmatch(r'\[(.*?)\]\((.*?)\)', m.group(1))
-            user_name = m.group(1)
+            m2 = re.fullmatch(r'\[(.*?)\]\((.*?)\)', m.group(1))
+            if not m2:
+                # リンクになっていない見出しは、ユーザーの節ではない
+                user_name = None
+                continue
+            user_name = m2.group(1)
             user_point = 0
             continue
 
@@ -158,7 +164,7 @@ def stats_contribution(text: str,
                 user_point = min(max_user_point_dict[name], user_point)
             user_point = compress_user_point(user_point, year)
 
-            if prev_point == 0 or point != prev_point:
+            if number == 0 or point != prev_point:
                 number += 1 + acc_number
                 acc_number = 0
             else:
@@ -202,7 +208,7 @@ def check_commit_dict(commit_dict: dict[str, set[str]]) -> None:
         out, err = proc.communicate()
         if len(err) > 0:
             print(err)
-            return
+            continue
         os.chdir(wd)
 
         commit_set: set[str] = set()

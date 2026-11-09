@@ -128,6 +128,46 @@ for u in order:
         lines.append("| %s | %s | %s |" % (refs, fmt_tags(m["tags"]), desc))
     lines.append("")
 
+# 上書き指定が最終出力まで残っているかを検査する。
+# classify の直後ではまとめ処理で消える経路を捕まえられない。
+import os as _os2
+_ovp = _os2.environ.get("OVERRIDES", "auto_stats/data/overrides.txt")
+if _os2.path.exists(_ovp):
+    _final = {}
+    for m in final:
+        for h in m["hashes"]:
+            _final[h] = m["tags"]
+    for line in open(_ovp):
+        line = line.split("#")[0].strip()
+        if not line:
+            continue
+        add = line.startswith("+")
+        if add:
+            line = line[1:]
+        parts = line.split(None, 1)
+        if len(parts) != 2:
+            continue
+        h, tg = parts
+        want = {}
+        for part in tg.split(","):
+            part = part.strip()
+            if not part:
+                continue
+            if ":" in part:
+                k, v = part.rsplit(":", 1)
+                want[k.strip()] = int(v)
+            else:
+                want[part] = 1
+        got = _final.get(h)
+        if got is None:
+            print("WARNING: override %s が最終出力に現れない" % h)
+            continue
+        bad = [k for k, v in want.items()
+               if (got.get(k, 0) < v if add else got.get(k) != v)]
+        if bad:
+            print("WARNING: override %s が最終出力で変わっている: 指定=%s 実際=%s"
+                  % (h, want, got))
+
 open(out_path, "w").write("\n".join(lines) + "\n")
 print("users:", len(order), "rows:", len(final))
 for u in order:

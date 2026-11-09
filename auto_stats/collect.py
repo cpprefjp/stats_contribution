@@ -97,6 +97,9 @@ for repo in REPOS:
                     continue
                 body = line[1:]
                 m2 = re.search(r'"([^"]+)"\s*:\s*"[~^>=<0-9]', body)        # package.json
+                if m2 and m2.group(1) in ("version", "name", "node", "npm",
+                                          "engines", "main", "module"):
+                    m2 = None
                 if not m2:
                     m2 = re.search(r"uses:\s*([\w.-]+/[\w.-]+)@", body)      # ワークフロー
                 if not m2:
