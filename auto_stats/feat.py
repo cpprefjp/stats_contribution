@@ -88,7 +88,10 @@ for repo in REPOS:
                     set(a) <= FMT and set(b) <= FMT for a, b in pairs)
             META_RE = re.compile(r"^\s*\*\s.*\[meta ")
             INC_RE = re.compile(r"^\s*#include")
+            QUAL_RE = re.compile(r"^\s*\*\s.*\[(link|color|italic|bold)[ \]]")
             meta_only = bool(body) and all(META_RE.match(l) for l in body)
+            qualify_only = (bool(body) and not meta_only
+                            and all(QUAL_RE.match(l) for l in body))
             heading_only = bool(body) and all(
                 l.strip().startswith("#") and not INC_RE.match(l) for l in body)
             # 見出しの変更のうち、見出しのレベル (#の数) だけが変わったものと、
@@ -102,7 +105,8 @@ for repo in REPOS:
             rows_added = sum(1 for l in add if l.strip().startswith("|"))
             out[path] = {"n": n, "link": is_link, "ver": ver, "rows": rows_added,
                          "nadd": len(add), "nrem": len(rem), "subst": subst, "subst2": subst2, "fmt": fmt_only,
-                         "meta_only": meta_only, "heading_only": heading_only,
+                         "meta_only": meta_only, "qualify_only": qualify_only,
+                         "heading_only": heading_only,
                          "heading_level_only": heading_level_only,
                          "include_only": include_only, "nadd_": len(add),
                          "alllink": bool(body) and all(LINKLINE.search(l) for l in body)}

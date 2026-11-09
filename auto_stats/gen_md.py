@@ -93,7 +93,7 @@ TAGORDER = ["cpprefjp/typo","cpprefjp/link","cpprefjp/compiler","cpprefjp/fixs",
             "cpprefjp/addref","cpprefjp/addlang","cpprefjp/addpage",
             "boostjp/typo","boostjp/link","boostjp/fixs","boostjp/fixm","boostjp/releases","boostjp/releasem",
             "boostjp/releasel","boostjp/addrefs","boostjp/addrefm",
-            "tool/improves","tool/improvem","tool/improvel","tool/fixbug","tool/updatelib","tool/updatelang",
+            "tool/improves","tool/improvem","tool/improvel","tool/fixbug","tool/updatelib","tool/updatelangs","tool/updatelangm","tool/updatelangl",
             "tool/security","tool/adds","tool/addm","tool/addl","ignore"]
 def fmt_tags(tags):
     items = sorted(tags.items(), key=lambda kv: TAGORDER.index(kv[0]) if kv[0] in TAGORDER else 99)

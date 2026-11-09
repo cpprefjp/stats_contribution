@@ -85,7 +85,8 @@ e44da74 ignore
 ec442d4 ignore
 92dbf35 tool/improves:1
 e56c8db ignore
-b0efad8 tool/addl:1
+# 既存の build.yml への3ステップ追加なので、CIの新設ではない
+b0efad8 tool/improves:1
 ac7f862 tool/updatelangs:1
 1c66125 tool/improves:1
 356a5cc ignore

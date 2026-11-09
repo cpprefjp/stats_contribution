@@ -6,7 +6,17 @@ commits = json.load(open(sys.argv[1]))
 feats = json.load(open(sys.argv[2]))
 
 TYPO = re.compile(r"(?i)typo|タイポ|誤字|脱字|スペル|misspell|誤記|表記ミス|綴り")
-SPEC = re.compile(r"(?i)P\d{4}R\d|LWG|CWG|仕様|非推奨|constexpr対応|mailing|C\+\+2[0-9]対応|Working Draft|規格|deprecat")
+# 仕様変更への対応 (fixl) は、「規格のどこが変わったか」を指す参照
+# (提案文書番号・LWG/CWG Issue・C++バージョン) と、それへの追従を表す動詞の
+# 両方がある場合に限る。本サイト側の書き間違いの修正と区別するため。
+SPEC_REF = re.compile(r"(?i)P\d{4}R\d+|LWG\s?\d+|CWG\s?\d+|C\+\+\d\d|mailing|deprecat")
+SPEC_ACT = re.compile(r"対応|適用|準拠|反映|追従|非推奨|削除|追加|変更|deprecat")
+def is_spec(subject):
+    return bool(SPEC_REF.search(subject) and SPEC_ACT.search(subject))
+# 参照規格案の番号やURLの更新は、仕様記述の変更ではなく参照の更新
+DRAFT = re.compile(r"(?i)Working Draft|規格案|Draft\s?URL")
+# 表記・用語・文体の統一は、読者に伝わる内容が変わらないので軽微な修正
+UNIFY = re.compile(r"統一|言い換え|口調|ですます|である調|文体|表記ゆれ|表記揺れ|s/[^/]+/[^/]+/")
 IGNORE_PATH = re.compile(r"^(start_editing/contribution_stats_|sponsors|\.github/ISSUE|LICENSE|CODEOWNERS)")
 TOOLPATH = re.compile(r"^(\.github/|.*\.py$|.*\.ya?ml$|.*\.json$|.*\.js$|.*\.rb$|.*\.sh$|Dockerfile|Makefile)")
 
@@ -42,7 +52,7 @@ if ovp and os.path.exists(ovp):
 
 FIXM_MAX = int(os.environ.get("FIXM_MAX", "40"))
 LINKSUBJ = re.compile(r"(?i)リンク|関連項目|nolink|\blinks?\b|参照を")
-MISTAKE = re.compile(r"誤り|間違|になっていた|が逆|抜け|漏れ|のままだった|食い違|ミスを修正|ミスを直|コピーに|重複し")
+MISTAKE = re.compile(r"誤り|間違|になっていた|が逆|抜け|漏れ|のままだった|食い違|ミスを修正|ミスを直|コピーに|重複|異なってい|存在しない|コピペ|取り違|入れ替わ|不足")
 SPONSOR = re.compile(r"(?i)スポンサー|sponsor")
 REVERT  = re.compile(r"(?i)^revert|巻き戻|取り消")
 # 同じ人が同年に作成したページを記録する。
@@ -85,13 +95,15 @@ for c in commits:
         st = f.get("status","M")
         if IGNORE_PATH.match(path) or path.startswith("image/"):
             tags["ignore"] += 1; details.append(path+":skip"); continue
-        if repo not in ("cpprefjp/site","boostjp/site") or TOOLPATH.match(path):
-            manual = True; details.append("%s:TOOL(+%d-%d)" % (path, f["add"], f["del"])); continue
-        if not path.endswith(".md"):
-            if path.endswith("GLOBAL_QUALIFY_LIST.txt") or path.endswith("PRIMARY_OVERLOAD_SPECIALIZATION_LIST.txt"):
+        if repo in ("cpprefjp/site", "boostjp/site"):
+            # サイトの編集用データファイル。TOOLPATH より先に判定する
+            if path.endswith(("GLOBAL_QUALIFY_LIST.txt", "PRIMARY_OVERLOAD_SPECIALIZATION.txt")):
                 tags["cpprefjp/link"] += 1; details.append(path+":link"); continue
             if path.endswith("GLOBAL_DEFINED_WORDS.json"):
                 tags["cpprefjp/fixm"] += 1; details.append(path+":fixm"); continue
+        if repo not in ("cpprefjp/site","boostjp/site") or TOOLPATH.match(path):
+            manual = True; details.append("%s:TOOL(+%d-%d)" % (path, f["add"], f["del"])); continue
+        if not path.endswith(".md"):
             manual = True; details.append(path+":OTHER"); continue
         pfx = "cpprefjp/" if repo == "cpprefjp/site" else "boostjp/"
         if st == "A":
@@ -112,6 +124,9 @@ for c in commits:
         if TYPO.search(subj) and (n <= 4 or subst or subst2):
             tags[pfx+"typo"] += 1; details.append("%s:typo(%d)" % (path, n)); continue
         if ver and ver == n and pfx == "cpprefjp/":
+            if not fd.get("nadd_"):
+                # 未確認の処理系欄を削除しただけなので「動作確認できた記載」ではない
+                tags[pfx+"fixs"] += 1; details.append("%s:fixs(verdel,%d)" % (path, n)); continue
             tags[pfx+"compiler"] += 1; details.append("%s:compiler(%d)" % (path, n)); continue
         if link or (LINKSUBJ.search(subj) and fd.get("alllink")):
             tags[pfx+"link"] += 1; details.append("%s:link(%d)" % (path, n)); continue
@@ -119,6 +134,9 @@ for c in commits:
                 and is_add_support(path) and n <= FIXM_MAX):
             tags[pfx+"link"] = max(tags.get(pfx+"link", 0), 1)
             details.append("%s:add-support(%d)" % (path, n)); continue
+        if fd.get("qualify_only"):
+            # コード修飾の適用はリンクの追加・修正にあたる
+            tags[pfx+"link"] += 1; details.append("%s:link(qual,%d)" % (path, n)); continue
         if fd.get("meta_only"):
             # メタ情報の付与は検索キーワードや表示に影響し、ユーザビリティを変える
             tags[pfx+"fixm"] += 1; details.append("%s:fixm(meta,%d)" % (path, n)); continue
@@ -133,7 +151,11 @@ for c in commits:
             else:
                 tags[pfx+"fixs"] += 1; details.append("%s:fixs(inc,%d)" % (path, n))
             continue
-        if SPEC.search(subj) and not MISTAKE.search(subj):
+        if DRAFT.search(subj) and n <= 4:
+            tags[pfx+"link"] += 1; details.append("%s:link(draft,%d)" % (path, n)); continue
+        if UNIFY.search(subj) and (subst or subst2):
+            tags[pfx+"fixs"] += 1; details.append("%s:fixs(unify,%d)" % (path, n)); continue
+        if is_spec(subj) and not MISTAKE.search(subj):
             tags[pfx+"fixl"] += 1; details.append("%s:fixl*(%d)" % (path, n)); continue
         if subst:
             tags[pfx+"fixm"] += 1; details.append("%s:fixm~(%d)" % (path, n)); continue
@@ -187,7 +209,7 @@ for c in commits:
         m = SELF_FOLD.match(rest)
         if not m:
             continue
-        if CREATED.get((repo, c["login"], dpath), "9999") >= c["date"]:
+        if CREATED.get((repo, c["login"], dpath), "9999") > c["date"]:
             continue
         k = pfx0 + m.group(1)
         if tags.get(k, 0) > 0:

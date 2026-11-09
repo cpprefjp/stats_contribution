@@ -140,7 +140,7 @@ def stats_contribution(text: str,
                 user_point += additional_user_point_dict[name]
             # 上限ポイントの設定
             if name in max_user_point_dict:
-                user_point = min(max_user_point_dict[name], point)
+                user_point = min(max_user_point_dict[name], user_point)
             sum_point += compress_user_point(user_point, year)
 
     if is_target_year:
@@ -155,7 +155,7 @@ def stats_contribution(text: str,
             if name in additional_user_point_dict:
                 user_point += additional_user_point_dict[name]
             if name in max_user_point_dict:
-                user_point = min(max_user_point_dict[name], point)
+                user_point = min(max_user_point_dict[name], user_point)
             user_point = compress_user_point(user_point, year)
 
             if prev_point == 0 or point != prev_point:

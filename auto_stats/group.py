@@ -5,6 +5,11 @@ import sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 import stats_contribution as sc
 
+# 年間を通して何度も更新されるページ。これを「同じページ」の判定に使うと、
+# 別々の時期の無関係な作業がつながってしまう
+HUB = re.compile(r"^(implementation-status\.md|implementation\.md|lang/cpp\d\d\.md"
+                 r"|.*/feature_test_macros\.md|reference\.md|index\.md)$")
+
 rows = json.load(open(sys.argv[1]))
 skip = set()
 if len(sys.argv) > 3 and os.path.exists(sys.argv[3]):
@@ -23,7 +28,7 @@ def pt(t): return sum(sc.point_dict.get(k,0)*v for k,v in t.items())
 def d(s): return datetime.date(*map(int, s.split("-")))
 
 for r in rows:
-    r["pages"] = tuple(r.get("pages", []))
+    r["pages"] = tuple(p for p in r.get("pages", []) if not HUB.match(p))
     r["hashes"] = [r["hash"]]
     r["papers"] = set(m.group(1).replace(" ","").upper() for m in PAPER.finditer(r["subject"]))
 
