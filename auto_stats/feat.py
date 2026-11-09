@@ -91,12 +91,19 @@ for repo in REPOS:
             meta_only = bool(body) and all(META_RE.match(l) for l in body)
             heading_only = bool(body) and all(
                 l.strip().startswith("#") and not INC_RE.match(l) for l in body)
+            # 見出しの変更のうち、見出しのレベル (#の数) だけが変わったものと、
+            # 見出しの削除は見た目の修正。見出しの文言が変わる場合は、
+            # 読者に伝わる情報が変わるので軽微な修正とはしない。
+            def htext(ls):
+                return sorted(l.strip().lstrip("#").strip() for l in ls)
+            heading_level_only = heading_only and (not add or htext(add) == htext(rem))
             include_only = bool(body) and all(INC_RE.match(l) for l in body)
             ver = sum(1 for l in body if VER_RE.match(l.strip().lstrip("-* ")))
             rows_added = sum(1 for l in add if l.strip().startswith("|"))
             out[path] = {"n": n, "link": is_link, "ver": ver, "rows": rows_added,
                          "nadd": len(add), "nrem": len(rem), "subst": subst, "subst2": subst2, "fmt": fmt_only,
                          "meta_only": meta_only, "heading_only": heading_only,
+                         "heading_level_only": heading_level_only,
                          "include_only": include_only, "nadd_": len(add),
                          "alllink": bool(body) and all(LINKLINE.search(l) for l in body)}
         feats[repo+"@"+h] = out

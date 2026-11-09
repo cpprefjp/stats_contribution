@@ -52,7 +52,9 @@ for c in sorted(commits, key=lambda x: x["date"]):
     for f in c["files"]:
         if f.get("status") == "A" and f["path"].endswith(".md"):
             CREATED.setdefault((c["repo"], c["login"], f["path"]), c["date"])
-SELF_FOLD = re.compile(r"(typo|link|fixs|fixm)\b")
+# 自分が作成したページへの追記としてまとめる対象のタグ。
+# fixl* (件名から仕様変更と判定したもの) と compiler は対象外。
+SELF_FOLD = re.compile(r"(typo|link|fixs|fixm|fixl)(?![*\w])")
 
 rows = []
 for c in commits:
@@ -117,8 +119,12 @@ for c in commits:
                 and is_add_support(path) and n <= FIXM_MAX):
             tags[pfx+"link"] = max(tags.get(pfx+"link", 0), 1)
             details.append("%s:add-support(%d)" % (path, n)); continue
-        if fmt or fd.get("heading_only") or fd.get("meta_only"):
-            # 空白・記法のみの変更、見出しだけの変更、メタ情報1行の付与は軽微な修正
+        if fd.get("meta_only"):
+            # メタ情報の付与は検索キーワードや表示に影響し、ユーザビリティを変える
+            tags[pfx+"fixm"] += 1; details.append("%s:fixm(meta,%d)" % (path, n)); continue
+        if fmt or fd.get("heading_level_only"):
+            # 空白・記法のみの変更と、見出しのレベル変更・見出しの削除は、
+            # 直してもサイトの価値が変わらない
             tags[pfx+"fixs"] += 1; details.append("%s:fixs(fmt,%d)" % (path, n)); continue
         if fd.get("include_only"):
             # インクルードの追加はコンパイルに影響するためfixm、削除だけなら軽微
@@ -170,7 +176,8 @@ for c in commits:
         else:
             tags = Counter({"ignore": 1}); manual = False; details = ["bot"]
     # 自分が同年に作成したページへの追記は、作成したときの作業にまとめる。
-    # 仕様変更への対応 (fixl) と動作確認 (compiler) は別の価値なので残す。
+    # 件名から仕様変更と判定したもの (fixl*) と動作確認 (compiler) は
+    # 別の価値なので残す。差分の規模だけで fixl になった追記はまとめる。
     pfx0 = "cpprefjp/" if repo == "cpprefjp/site" else "boostjp/"
     folded = 0
     for di, d in enumerate(details):
