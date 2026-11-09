@@ -45,10 +45,14 @@ for repo in REPOS:
             rem = [l[1:] for l in chl if l.startswith("-") and l[1:].strip()]
             body = add + rem
             n = len(body)
+            # 参照・関連項目のリンクに付随する説明の箇条書き (字下げされた箇条書き) は、
+            # リンク編集の一部として扱う。LWG Issueの追加などが該当する。
+            SUBBULLET = re.compile(r"^(\s{2,}|\t)[-*+]\s")
             def split_link(ls):
                 lk = [l for l in ls if LINKLINE.search(l)]
                 other = [l for l in ls if not LINKLINE.search(l)
                          and not l.strip().startswith("#")
+                         and not SUBBULLET.match(l)
                          and l.strip() not in ("", "-", "*")]
                 return lk, other
             alk, aot = split_link(add)
