@@ -1,3 +1,5 @@
+# [ユーザー判断] の印がある行は、ユーザーが個別に決めた割り振りである。
+# レビューの指摘で覆してはならない。変更するときは必ずユーザーに確認する。
 # cpprefjp/site : CIスクリプト・ワークフロー・用語定義ファイル
 3f320f6 tool/improvem:1
 5d851f9 tool/improves:1
@@ -5,6 +7,7 @@
 f375117 tool/fixbug:1
 1a8ea72 tool/improves:1
 4124197 tool/improvem:1
+# [ユーザー判断] 依存ライブラリ更新の自動化。長期的に価値が続く仕組みの導入
 a242be8 tool/addl:1
 4eac882 tool/fixbug:1
 1431546 tool/improvem:1
@@ -62,6 +65,7 @@ a3baa11 ignore
 c72a50b tool/fixbug:1
 aee9f0e ignore
 c0cf27c ignore
+# [ユーザー判断] CIの新設。長期的に価値が続く仕組みの導入
 4eee9e4 tool/addl:1
 # requirements.txtで4ライブラリ更新 + Python本体の更新 (コード変更なしのsmall)
 a9ca74e tool/updatelib:4, tool/updatelangs:1
@@ -85,8 +89,9 @@ e44da74 ignore
 ec442d4 ignore
 92dbf35 tool/improves:1
 e56c8db ignore
-# 既存の build.yml への3ステップ追加なので、CIの新設ではない
-b0efad8 tool/improves:1
+# [ユーザー判断] docker ビルドの検証がCIで回るようになったことが価値なので addl。
+# 既存ワークフローへの追加か新規ファイルかは問わない
+b0efad8 tool/addl:1
 ac7f862 tool/updatelangs:1
 1c66125 tool/improves:1
 356a5cc ignore
