@@ -1,2 +1,4 @@
 cpprefjp/
 boostjp/
+__pycache__/
+auto_stats/out/

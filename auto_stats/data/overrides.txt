@@ -1,0 +1,124 @@
+# cpprefjp/site : CIスクリプト・ワークフロー・用語定義ファイル
+3f320f6 tool/improvem:1
+5d851f9 tool/improves:1
+6c650a5 tool/fixbug:1
+f375117 tool/fixbug:1
+1a8ea72 tool/improves:1
+4124197 tool/improvem:1
+a242be8 tool/adds:1
+4eac882 tool/fixbug:1
+1431546 tool/improvem:1
+8287cbc tool/adds:1
+e5eb048 tool/improves:1
+0e56e8d tool/improvem:1
+323aaa4 tool/improves:1
+b3502ee tool/improvem:1
+79a4e8d tool/improves:1
+139e3d5 tool/improves:1
+ee0904d tool/improves:1
+6d3a97f tool/fixbug:1
+7929921 tool/improvem:1
+4fc457f tool/fixbug:1
+10cc934 ignore
+54ebc76 cpprefjp/fixm:1
+9bde559 cpprefjp/fixm:2, cpprefjp/fixs:4
+a3e6c02 cpprefjp/fixm:2
+0a97964 cpprefjp/fixm:1
+eed9f1b cpprefjp/fixm:1
+5bd66aa tool/improves:1
++1e0f1cc tool/improves:1
+09b4483 cpprefjp/fixm:2, cpprefjp/fixs:3
+2dd6323 cpprefjp/fixm:1, cpprefjp/fixs:2
+d52962b cpprefjp/fixm:1, cpprefjp/fixs:3
+36dc972 cpprefjp/fixs:6, cpprefjp/fixm:2
++10763a3 tool/improves:1
++bacfeed cpprefjp/fixm:1
++83bfc3a cpprefjp/fixm:1
++2079aca cpprefjp/fixm:1
++32cd88c cpprefjp/fixm:3, tool/improves:1
+# 機械的な一括修正はページ単位のfixsに統一
+#bab3116 (自動分類に任せる)
+# サンプルコードのコンパイルに影響する修正はfixm
+#97c8d0b
+#98e6f7c
+#85a6c18
+#8ef29e4
+#2bf7eef
+7e4e769 cpprefjp/link:1
+5c2a2f3 boostjp/releasem:1
+# site_generator / markdown_to_html
+2d8279a tool/fixbug:1
+da32019 tool/improves:1
+2ac0f52 tool/adds:1
+3d530f0 tool/adds:1
+d6a770c tool/improvem:1
+3c62598 tool/improvem:1
+df3a4af tool/improves:1
+b15e9a7 tool/improvem:1
+cc106b4 tool/improves:1
+bfb4188 tool/improves:1
+a3baa11 ignore
+1715ba0 ignore
+c72a50b tool/fixbug:1
+aee9f0e ignore
+c0cf27c ignore
+4eee9e4 tool/adds:1
+a9ca74e tool/updatelib:1
+addee97 tool/updatelib:1
+802af99 ignore
+c1b9d74 tool/improves:1
+ad05c23 tool/improves:1
+79dd79f tool/updatelib:1
+81720d3 tool/improves:1
+b522ad6 tool/adds:1
+c99ca1e tool/improves:1
+bb9a644 tool/adds:1
+# kunai
+807374a tool/improves:1
+ae04d62 tool/improves:1
+34379b2 tool/improves:1
+2679cc5 tool/improves:1
+51ca60c tool/improvem:1
+e44da74 ignore
+501f1d2 tool/improves:1
+ec442d4 ignore
+92dbf35 tool/improves:1
+e56c8db tool/fixbug:1
+b0efad8 tool/adds:1
+ac7f862 tool/updatelang:1
+1c66125 tool/improves:1
+356a5cc ignore
+39aa059 tool/updatelang:1
+e77f3a3 tool/security:1
+b4a52b3 tool/improves:1
+a214129 tool/fixbug:1
+383151e tool/improves:1
+6b486d3 tool/improves:1
+073f6eb tool/improvem:1
+1badf86 tool/improves:1
+16b31c4 ignore
+850ea7f tool/improves:1
+1dd57ad tool/improves:1
+730b028 ignore
+0e78f1a ignore
+# kunai_config
+2cfe462 tool/improves:1
+eef5913 tool/improves:1
+# crsearch
+0a3fcc4 tool/adds:1
+ce7e6fb tool/updatelib:1
+60d9d6b tool/improvem:1
+a6c0427 tool/improves:1
+dbe742d tool/improves:1
+4cba859 tool/improvem:1
+76cc8a3 tool/fixbug:1
+9deca11 ignore
+61b8f30 tool/improvem:1
+dd4f775 tool/improves:1
+80f3956 tool/fixbug:1
+4ef9d94 tool/fixbug:1
+7bdfeb4 tool/fixbug:1
+cce4f38 tool/addm:1
+ecbdea6 tool/improvem:1
+645cc49 tool/improvem:1
+5a6f476 tool/improvem:1
