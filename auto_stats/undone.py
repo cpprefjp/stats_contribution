@@ -60,5 +60,6 @@ for repo in REPOS:
         out[repo + "@" + h] = {"add": tot_add, "rem": tot_rem,
                                "gone": round(gone, 3), "back": round(back, 3)}
 json.dump(out, open(sys.argv[1], "w"))
-undone = [k for k, v in out.items() if v["gone"] >= 0.8 and v["back"] >= 0.8 and v["add"] + v["rem"] >= 1]
+undone = [k for k, v in out.items()
+          if v["gone"] >= 0.8 and v["back"] >= 0.8 and v["add"] > 0 and v["rem"] > 0]
 print("analyzed:", len(out), " undone candidates:", len(undone))

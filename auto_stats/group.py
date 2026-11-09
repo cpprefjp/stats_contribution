@@ -12,7 +12,7 @@ if len(sys.argv) > 3 and os.path.exists(sys.argv[3]):
         for h in line.replace("\t", " ").split():
             if len(h) == 7:
                 skip.add(h)
-WINDOW = int(os.environ.get("WINDOW","7"))
+WINDOW = int(os.environ.get("WINDOW","30"))
 PRWINDOW = int(os.environ.get("PRWINDOW","60"))
 PAPER = re.compile(r"(?i)(P\d{4}R\d+|LWG\s?\d+|CWG\s?\d+|#\d+)")
 
@@ -34,10 +34,18 @@ owner = {}
 pr_owner = {}
 order = sorted(range(len(rows)), key=lambda i: (rows[i]["date"], rows[i]["hash"]))
 dropped = set()
+PAGE_REPOS = ("cpprefjp/site", "boostjp/site")
 for i in order:
     r = rows[i]
-    if not r["pages"] or len(r["pages"]) > 5:
+    if not r["pages"] or r["repo"] not in PAGE_REPOS:
         continue
+    if len(r["pages"]) > 5:
+        # 大量ページを触るコミットは原則まとめないが、
+        # 直前の作業とページ集合が完全に一致する場合は続きの作業とみなす
+        same = [j for j in set(owner.get((r["repo"], r["login"], pg)) for pg in r["pages"])
+                if j is not None]
+        if not (len(same) == 1 and set(rows[same[0]]["pages"]) == set(r["pages"])):
+            continue
     if r["tags"].get("ignore") and len(r["tags"]) == 1:
         continue
     if r["hash"] in skip:
@@ -55,8 +63,11 @@ for i in order:
                 continue
             if pt(r["tags"]) > pt(p["tags"]):
                 continue
+            if not (set(r["pages"]) & set(p["pages"])):
+                continue
             # 微調整はその作業の行に吸収するだけで、ポイントは増やさない
             p["hashes"].append(r["hash"])
+            p["coauthors"] = sorted(set(p["coauthors"]) | set(r["coauthors"]))
             p["papers"] |= r["papers"]
             p["date_last"] = r["date"]
             dropped.add(i)
@@ -80,7 +91,9 @@ for i in order:
                     continue
                 merged[k] = max(merged.get(k, 0), v)
             p["tags"] = dict(merged)
+            p["coauthors"] = sorted(set(p["coauthors"]) | set(r["coauthors"]))
             p["papers"] |= r["papers"]
+            p["pages"] = tuple(sorted(set(p["pages"]) | set(r["pages"])))
             p["date_last"] = r["date"]
             dropped.add(i)
             continue

@@ -6,7 +6,7 @@ import os
 SINCE=os.environ.get("SINCE","2025-12-01"); UNTIL=os.environ.get("UNTIL","2026-12-01")
 REV = os.environ.get("REV","origin/master")
 S1="\x1e"
-LINKLINE = re.compile(r"\]\(|\.nolink")
+LINKLINE = re.compile(r"\]\(|\.nolink|\[link ")
 LISTLINK = re.compile(r"^\s*([-*+]\s+|\|)")
 VER_RE = re.compile(r"^-?\s*\[?(Clang|GCC|Visual C\+\+|ICC|ICX|Oracle|EDG)\]?")
 URL_RE = re.compile(r"\]\([^)]*\)")
@@ -61,8 +61,10 @@ for repo in REPOS:
             if n and (alk or rlk) and sorted(plain(x) for x in add) == sorted(plain(x) for x in rem):
                 is_link = True
             elif n and (alk or rlk) and not aot and not rot:
+                pa = set(plain(x) for x in add)
+                pr = set(plain(x) for x in rem)
                 if len(alk) != len(rlk):
-                    is_link = True
+                    is_link = pr <= pa or pa <= pr
                 else:
                     is_link = sorted(norm(x) for x in alk) == sorted(norm(x) for x in rlk)
             at = "\n".join(add); rt = "\n".join(rem)
@@ -84,10 +86,18 @@ for repo in REPOS:
                 FMT = set(" \t#*|-\n")
                 fmt_only = bool(pairs) and all(
                     set(a) <= FMT and set(b) <= FMT for a, b in pairs)
+            META_RE = re.compile(r"^\s*\*\s.*\[meta ")
+            INC_RE = re.compile(r"^\s*#include")
+            meta_only = bool(body) and all(META_RE.match(l) for l in body)
+            heading_only = bool(body) and all(
+                l.strip().startswith("#") and not INC_RE.match(l) for l in body)
+            include_only = bool(body) and all(INC_RE.match(l) for l in body)
             ver = sum(1 for l in body if VER_RE.match(l.strip().lstrip("-* ")))
             rows_added = sum(1 for l in add if l.strip().startswith("|"))
             out[path] = {"n": n, "link": is_link, "ver": ver, "rows": rows_added,
                          "nadd": len(add), "nrem": len(rem), "subst": subst, "subst2": subst2, "fmt": fmt_only,
+                         "meta_only": meta_only, "heading_only": heading_only,
+                         "include_only": include_only, "nadd_": len(add),
                          "alllink": bool(body) and all(LINKLINE.search(l) for l in body)}
         feats[repo+"@"+h] = out
 json.dump(feats, open(sys.argv[1],"w"), ensure_ascii=False)

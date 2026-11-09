@@ -20,6 +20,11 @@ for r in rows:
     if r["hash"] in seen: continue
     seen.add(r["hash"])
     rs = byhash[r["hash"]]
+    same = [x for x in rs if x["tags"] == rs[0]["tags"]]
+    if len(same) != len(rs):
+        # 7桁の短縮ハッシュが別リポジトリで衝突した場合は別行として扱う
+        rs = [r]
+        seen.discard(r["hash"])
     m = dict(rs[0])
     m["repos"] = [x["repo"] for x in rs]
     m["hashes"] = r.get("hashes", [r["hash"]])
@@ -58,7 +63,9 @@ if extra_path and os.path.exists(extra_path):
     for line in open(extra_path):
         line = line.rstrip("\n")
         if not line.strip() or line.startswith("#"): continue
-        repo, hs, login, date, tg, desc = line.split("\t")
+        cols = line.split("\t")
+        repo, hs, login, date, tg, desc = cols[:6]
+        cos = [x.strip() for x in cols[6].split(",")] if len(cols) > 6 and cols[6].strip() else []
         d = {}
         for part in tg.split(","):
             part = part.strip()
@@ -68,7 +75,7 @@ if extra_path and os.path.exists(extra_path):
             else:
                 d[part] = 1
         final.append({"repos":[repo], "hashes":[h.strip() for h in hs.split(",")],
-                      "login":login, "date":date, "tags":d, "subject":desc, "coauthors":[]})
+                      "login":login, "date":date, "tags":d, "subject":desc, "coauthors":cos})
 
 def pt(tags):
     return sum(sc.point_dict.get(k, 0)*v for k, v in tags.items())

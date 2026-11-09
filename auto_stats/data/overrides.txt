@@ -21,16 +21,16 @@ ee0904d tool/improves:1
 4fc457f tool/fixbug:1
 10cc934 ignore
 54ebc76 cpprefjp/fixm:1
-9bde559 cpprefjp/fixm:2, cpprefjp/fixs:4
++9bde559 cpprefjp/fixm:1
 a3e6c02 cpprefjp/fixm:2
 0a97964 cpprefjp/fixm:1
 eed9f1b cpprefjp/fixm:1
 5bd66aa tool/improves:1
 +1e0f1cc tool/improves:1
-09b4483 cpprefjp/fixm:2, cpprefjp/fixs:3
-2dd6323 cpprefjp/fixm:1, cpprefjp/fixs:2
-d52962b cpprefjp/fixm:1, cpprefjp/fixs:3
-36dc972 cpprefjp/fixs:6, cpprefjp/fixm:2
++09b4483 cpprefjp/fixm:2
++2dd6323 cpprefjp/fixm:1
++d52962b cpprefjp/fixm:1
++36dc972 cpprefjp/fixm:1
 +10763a3 tool/improves:1
 +bacfeed cpprefjp/fixm:1
 +83bfc3a cpprefjp/fixm:1
@@ -63,7 +63,7 @@ c72a50b tool/fixbug:1
 aee9f0e ignore
 c0cf27c ignore
 4eee9e4 tool/adds:1
-a9ca74e tool/updatelib:1
+a9ca74e tool/updatelib:4, tool/improves:1
 addee97 tool/updatelib:1
 802af99 ignore
 c1b9d74 tool/improves:1
@@ -85,11 +85,11 @@ ec442d4 ignore
 92dbf35 tool/improves:1
 e56c8db tool/fixbug:1
 b0efad8 tool/adds:1
-ac7f862 tool/updatelang:1
+ac7f862 tool/improves:1
 1c66125 tool/improves:1
 356a5cc ignore
-39aa059 tool/updatelang:1
-e77f3a3 tool/security:1
+39aa059 tool/improves:1
+e77f3a3 tool/security:1, tool/improvem:1
 b4a52b3 tool/improves:1
 a214129 tool/fixbug:1
 383151e tool/improves:1
@@ -122,3 +122,24 @@ cce4f38 tool/addm:1
 ecbdea6 tool/improvem:1
 645cc49 tool/improvem:1
 5a6f476 tool/improvem:1
+# サブエージェントのレビューで判明した個別事情
+# C++26「堅牢化された事前条件」(P3471R4) の適用。見出しの置換と参照追加だが、
+# 仕様変更への追従なのでfixl。2025年の「nodiscard指定を削除 (fixl:58)」と同じ扱い
+f5d6b94 cpprefjp/fixl:53
+# implementation-status.md の <br> を <br/> に直したもので、処理系情報ではない
+2898e82 cpprefjp/fixs:1
+# 10ページすべてが `const T &` → `const T&` の空白位置の統一のみ
+e42919d cpprefjp/fixs:10
+# make_format_args は宣言の仕様変更 (P2905R2)、vformat はサンプルコードの修正
+f9afc16 cpprefjp/fixl:1, cpprefjp/fixm:1
+# 圧縮境界の近くにいるユーザーの行を差分で個別確認した結果 (2026年)
+# formattable コンセプトの仕様記述を規格に合わせて書き換え
+641ed17 cpprefjp/fixl:1
+7884e2f ignore
+# basic_format_arg のコンストラクタにC++20/C++23の適格要件の書き分けを追加
+82fa1ac cpprefjp/fixl:1
+# C++98の宣言に欠けていた例外仕様 throw() を追加 (仕様記述のバグ修正)
+0d45db6 cpprefjp/fixl:1
+252ca93 cpprefjp/fixl:1
+6b1b7b1 cpprefjp/fixl:1
+7759d18 cpprefjp/fixl:1

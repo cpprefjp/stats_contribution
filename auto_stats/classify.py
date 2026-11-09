@@ -5,7 +5,7 @@ from collections import Counter, OrderedDict
 commits = json.load(open(sys.argv[1]))
 feats = json.load(open(sys.argv[2]))
 
-TYPO = re.compile(r"(?i)typo|誤字|脱字|スペル|misspell|誤記|表記ミス|綴り")
+TYPO = re.compile(r"(?i)typo|タイポ|誤字|脱字|スペル|misspell|誤記|表記ミス|綴り")
 SPEC = re.compile(r"(?i)P\d{4}R\d|LWG|CWG|仕様|非推奨|constexpr対応|mailing|C\+\+2[0-9]対応|Working Draft|規格|deprecat")
 IGNORE_PATH = re.compile(r"^(start_editing/contribution_stats_|sponsors|\.github/ISSUE|LICENSE|CODEOWNERS)")
 TOOLPATH = re.compile(r"^(\.github/|.*\.py$|.*\.ya?ml$|.*\.json$|.*\.js$|.*\.rb$|.*\.sh$|Dockerfile|Makefile)")
@@ -40,7 +40,7 @@ if ovp and os.path.exists(ovp):
                 d[part] = 1
         OV[h] = (d, add)
 
-FIXM_MAX = int(os.environ.get("FIXM_MAX", "20"))
+FIXM_MAX = int(os.environ.get("FIXM_MAX", "40"))
 LINKSUBJ = re.compile(r"(?i)リンク|関連項目|nolink|\blinks?\b|参照を")
 SPONSOR = re.compile(r"(?i)スポンサー|sponsor")
 REVERT  = re.compile(r"(?i)^revert|巻き戻|取り消")
@@ -63,8 +63,11 @@ for c in commits:
         return False
     for f in c["files"]:
         path = f["path"]
-        if "=>" in path:
-            tags["ignore"] += 1; details.append(path+":rename"); continue
+        m_ren = re.match(r"^(.*)\{(.*) => (.*)\}(.*)$", path)
+        if m_ren:
+            path = (m_ren.group(1) + m_ren.group(3) + m_ren.group(4)).replace("//", "/")
+        elif " => " in path:
+            path = path.split(" => ")[-1]
         fd = fe.get(path, {"n": f["add"]+f["del"], "link":False, "ver":0})
         n = fd["n"]; link = fd["link"]; ver = fd["ver"]; subst = fd.get("subst", False); subst2 = fd.get("subst2", False); fmt = fd.get("fmt", False)
         st = f.get("status","M")
@@ -100,11 +103,20 @@ for c in commits:
             tags[pfx+"compiler"] += 1; details.append("%s:compiler(%d)" % (path, n)); continue
         if link or (LINKSUBJ.search(subj) and fd.get("alllink")):
             tags[pfx+"link"] += 1; details.append("%s:link(%d)" % (path, n)); continue
-        if added_pages and os.environ.get("ADDMODE","parent") == "parent" and is_add_support(path):
+        if (added_pages and os.environ.get("ADDMODE","parent") == "parent"
+                and is_add_support(path) and n <= FIXM_MAX):
             tags[pfx+"link"] = max(tags.get(pfx+"link", 0), 1)
             details.append("%s:add-support(%d)" % (path, n)); continue
-        if fmt:
+        if fmt or fd.get("heading_only") or fd.get("meta_only"):
+            # 空白・記法のみの変更、見出しだけの変更、メタ情報1行の付与は軽微な修正
             tags[pfx+"fixs"] += 1; details.append("%s:fixs(fmt,%d)" % (path, n)); continue
+        if fd.get("include_only"):
+            # インクルードの追加はコンパイルに影響するためfixm、削除だけなら軽微
+            if fd.get("nadd_"):
+                tags[pfx+"fixm"] += 1; details.append("%s:fixm(inc,%d)" % (path, n))
+            else:
+                tags[pfx+"fixs"] += 1; details.append("%s:fixs(inc,%d)" % (path, n))
+            continue
         if SPEC.search(subj):
             tags[pfx+"fixl"] += 1; details.append("%s:fixl*(%d)" % (path, n)); continue
         if subst:
@@ -113,13 +125,6 @@ for c in commits:
             tags[pfx+"fixm"] += 1; details.append("%s:fixm(%d)" % (path, n))
         else:
             tags[pfx+"fixl"] += 1; details.append("%s:fixl(%d)" % (path, n))
-    if c["hash"] in OV:
-        d, add = OV[c["hash"]]
-        if add:
-            tags.update(d); details.append("OVERRIDE+")
-        else:
-            tags = Counter(d); details = ["OVERRIDE"]
-        manual = False
     # 新規ページ追加を伴うコミットでは、同じ作業に含まれる既存ページの修正は
     # addref/addlang/addpage に含めて数える (2025年の人手判断に合わせる)
     ADDMODE = os.environ.get("ADDMODE", "parent")
@@ -134,7 +139,8 @@ for c in commits:
                 pfx2 = "cpprefjp/" if repo == "cpprefjp/site" else "boostjp/"
                 tags[pfx2 + "link"] = max(tags.get(pfx2 + "link", 0), 1)
     und = UNDONE.get(repo + "@" + c["hash"])
-    is_undone = bool(und and und["gone"] >= 0.8 and und["back"] >= 0.8)
+    is_undone = bool(und and und["gone"] >= 0.8 and und["back"] >= 0.8
+                     and und.get("add", 0) > 0 and und.get("rem", 0) > 0)
     if SPONSOR.search(subj) or REVERT.search(subj) or is_undone:
         tags = Counter({"ignore": 1}); manual = False
         details = ["undone" if is_undone else "rule-ignore"]
@@ -144,6 +150,14 @@ for c in commits:
         tags["boostjp/fixm"] += tags.pop("boostjp/fixl")
     if c["login"] in ("dependabot[bot]",):
         tags = Counter({"ignore": 1}); manual = False; details = ["bot"]
+    # 人が明示した上書きは、自動ルールより後に適用して必ず最終結果に残す
+    if c["hash"] in OV:
+        d, add = OV[c["hash"]]
+        if add:
+            tags.update(d); details.append("OVERRIDE+")
+        else:
+            tags = Counter(d); details = ["OVERRIDE"]
+        manual = False
     cos = [x for x in c["coauthors"] if x not in ("Copilot","copilot","dependabot[bot]","github-actions[bot]")
            and not x.lower().startswith(("claude", "gpt", "gemini")) and x != c["login"]]
     rows.append({"repo":repo,"hash":c["hash"],"date":c["date"],"login":c["login"],
@@ -152,6 +166,19 @@ for c in commits:
                  "pages":sorted(x["path"] for x in c["files"] if x["path"].endswith(".md")),
                  "nfiles":len(c["files"])})
 json.dump(rows, open(sys.argv[3],"w"), ensure_ascii=False)
+
+# 上書き指定が最終結果に残っているかを検査する
+byhash = {r["hash"]: r for r in rows}
+for h, (d, add) in OV.items():
+    r = byhash.get(h)
+    if r is None:
+        print("WARNING: override %s はどのコミットにも対応しない" % h); continue
+    if add:
+        bad = [k for k, v in d.items() if r["tags"].get(k, 0) < v]
+    else:
+        bad = [k for k, v in d.items() if r["tags"].get(k) != v]
+    if bad:
+        print("WARNING: override %s が反映されていない: 指定=%s 実際=%s" % (h, d, r["tags"]))
 
 # summary
 per = Counter()
