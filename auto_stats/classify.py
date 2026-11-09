@@ -192,9 +192,28 @@ for c in commits:
         # 価値があるため、マージした人の依存ライブラリ更新として計上する
         if c.get("merged_by"):
             login_ = c["merged_by"]
-            # 依存ライブラリの更新なので updatelib。1つのPRで1ライブラリが基本
-            tags = Counter({"tool/updatelib": 1}); manual = False; details = ["bot-merge"]
-            subj = subj + " (dependabotのPRを動作確認してマージ)"
+            # updatelib は「直接使用のライブラリ単位」なので、直接使用している
+            # ライブラリの更新に限る。package-lock.json しか変わらない更新は
+            # 依存ライブラリの依存ライブラリの更新なので対象外。
+            direct = any(not f["path"].endswith("package-lock.json")
+                         for f in c["files"])
+            if direct:
+                # 「直接使用のライブラリ単位」で数える。dependabotの件名は
+                # "Bump X from a to b" / "Bump X and Y" / "Bump X, Y and Z" の形。
+                m_bump = re.search(r"(?i)bump\s+(.*?)(?:\s+from\s|\s+in\s|$)", subj)
+                names = []
+                if m_bump:
+                    for part in re.split(r",|\s+and\s+", m_bump.group(1)):
+                        part = part.strip()
+                        if part:
+                            names.append(part)
+                cnt = max(1, len(names))
+                tags = Counter({"tool/updatelib": cnt}); details = ["bot-merge"]
+                subj = subj + " (dependabotのPRを動作確認してマージ)"
+            else:
+                tags = Counter({"ignore": 1}); details = ["bot-indirect"]
+                subj = subj + " (依存ライブラリの依存ライブラリの更新のため対象外)"
+            manual = False
         else:
             tags = Counter({"ignore": 1}); manual = False; details = ["bot"]
     # 自分が同年に作成したページへの追記は、作成したときの作業にまとめる。
