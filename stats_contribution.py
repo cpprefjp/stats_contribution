@@ -45,9 +45,17 @@ target_repos = [
     "cpprefjp/kunai",
     "cpprefjp/kunai_config",
     "cpprefjp/crsearch",
-    "cpprefjp/markdown_to_html",
     "boostjp/site",
 ]
+
+# 過去の集計ファイルに現れるリポジトリ名。
+# cpprefjp/markdown_to_html は site_generator へ統合されてarchiveされたため
+# 集計対象からは外したが、過去年のファイルを読めるように名前は認識する。
+# https://github.com/cpprefjp/stats_contribution/issues/4
+archived_repos = [
+    "cpprefjp/markdown_to_html",
+]
+known_repos = target_repos + archived_repos
 
 def compress_user_point(point: int, year: int) -> int:
     if year < 2025:
@@ -196,7 +204,7 @@ def diff_commit_set(commit_log_set: set[str], stats_commit_set: set[str]) -> set
 
 def check_commit_dict(commit_dict: dict[str, set[str]]) -> None:
     for repo in commit_dict.keys():
-        if repo not in target_repos:
+        if repo not in known_repos:
             raise Exception("unknown repo name:{}".format(repo))
 
     commit_log_set = set()

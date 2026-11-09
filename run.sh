@@ -26,11 +26,6 @@ cd crsearch
 git pull
 cd ..
 
-git clone https://github.com/cpprefjp/markdown_to_html.git
-cd markdown_to_html
-git pull
-cd ..
-
 cd ..
 mkdir -p boostjp
 cd boostjp

@@ -2,8 +2,7 @@
 # 追加行がほぼ残らず、削除行がほぼ復活している場合、その変更は取り消されたとみなす。
 import json, os, re, subprocess, sys
 REPOS = ["cpprefjp/site","cpprefjp/site_generator","cpprefjp/kunai",
-         "cpprefjp/kunai_config","cpprefjp/crsearch","cpprefjp/markdown_to_html",
-         "boostjp/site"]
+         "cpprefjp/kunai_config","cpprefjp/crsearch", "boostjp/site"]
 S1 = "\x1e"
 SINCE = os.environ.get("SINCE","2025-12-01")
 UNTIL = os.environ.get("UNTIL","2026-12-01")

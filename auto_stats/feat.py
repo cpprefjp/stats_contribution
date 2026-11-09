@@ -1,7 +1,6 @@
 import json, re, subprocess, sys, difflib
 REPOS = ["cpprefjp/site","cpprefjp/site_generator","cpprefjp/kunai",
-         "cpprefjp/kunai_config","cpprefjp/crsearch","cpprefjp/markdown_to_html",
-         "boostjp/site"]
+         "cpprefjp/kunai_config","cpprefjp/crsearch", "boostjp/site"]
 import os
 SINCE=os.environ.get("SINCE","2025-12-01"); UNTIL=os.environ.get("UNTIL","2026-12-01")
 REV = os.environ.get("REV","origin/master")
