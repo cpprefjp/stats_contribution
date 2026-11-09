@@ -95,6 +95,28 @@ TAGORDER = ["cpprefjp/typo","cpprefjp/link","cpprefjp/compiler","cpprefjp/fixs",
             "boostjp/releasel","boostjp/addrefs","boostjp/addrefm",
             "tool/improves","tool/improvem","tool/improvel","tool/fixbug","tool/updatelib","tool/updatelangs","tool/updatelangm","tool/updatelangl",
             "tool/security","tool/adds","tool/addm","tool/addl","ignore"]
+def escape_desc(text):
+    """コミット件名を表のセルに入れられる形にする。
+
+    `<tuple>` のような生の山カッコはHTML変換でタグとして解釈され、
+    ページ全体のパースに失敗する。バッククォートの外にある `<` を
+    実体参照に置き換える。
+    """
+    out = []
+    in_code = False
+    for ch in text:
+        if ch == "`":
+            in_code = not in_code
+            out.append(ch)
+        elif ch == "<" and not in_code:
+            out.append("&lt;")
+        elif ch == "|":
+            out.append("\\|")
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
 def fmt_tags(tags):
     items = sorted(tags.items(), key=lambda kv: TAGORDER.index(kv[0]) if kv[0] in TAGORDER else 99)
     out = []
@@ -122,7 +144,7 @@ for u in order:
     rs = sorted(users[u], key=lambda t: (t[0]["date"], t[0]["hashes"][0]))
     for m, isco in rs:
         refs = " ".join("[commit %s, %s]" % (repo, ", ".join(m["hashes"])) for repo in m["repos"])
-        desc = m["subject"].replace("|", "\\|")
+        desc = escape_desc(m["subject"])
         if isco:
             desc += " (Co-author)"
         lines.append("| %s | %s | %s |" % (refs, fmt_tags(m["tags"]), desc))

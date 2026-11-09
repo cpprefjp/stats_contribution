@@ -1,6 +1,6 @@
 cpprefjp/site	f1090f2,39695e1,828812e,49d191b,56695bc,ffb8d64,3da7c5d	yumetodo	2026-09-15	cpprefjp/fixl:1	if_constexpr : CWG2518適用を前提とした記述に修正 (#1260)	akinomyoga
 cpprefjp/site	7b52ba3	faithandbrave	2025-12-01	ignore	2025年分の貢献ポイントを集計 (#1536)
-cpprefjp/site	82e6010,36edbb5,e5269ea,b5138ad,e28b3a7,f9a5a6e,61fb542,5053419,3d2f610,011940c,5076a48,e84d0d7,e7a023c,7929ccf,272eede,a73ff94,e576be3,b0cbaba,5eaa64e,4f4a3bd,03d4d11,afff35f,d1fca52	faithandbrave	2026-11-09	ignore	2026年分の貢献ポイントを集計 (集計作業のため対象外)
+cpprefjp/site	82e6010,36edbb5,e5269ea,b5138ad,e28b3a7,f9a5a6e,61fb542,5053419,3d2f610,011940c,5076a48,e84d0d7,e7a023c,7929ccf,272eede,a73ff94,e576be3,b0cbaba,5eaa64e,4f4a3bd,03d4d11,afff35f,d1fca52,a598a1e	faithandbrave	2026-11-09	ignore	2026年分の貢献ポイントを集計 (集計作業のため対象外)
 cpprefjp/site	1ed3f7d,3214979	faithandbrave	2025-12-01	ignore	2025年分の集計ファイルのアカウント名を修正 (集計作業のため対象外)
 cpprefjp/site	6327f23	Gumichocopengin8	2025-12-01	cpprefjp/link:1	fix: add a relative page like for `[[likely]]/[[unlikely]]` page
 cpprefjp/site_generator	160e85e,2ce6b71,46c8876,533bf5f,e2af656,f4185da,f95588d	faithandbrave	2026-11-09	ignore	markdown_to_htmlとの履歴統合により再出現したコミット。過去年にcpprefjp/markdown_to_htmlとして計上済み
