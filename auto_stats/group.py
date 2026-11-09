@@ -12,6 +12,9 @@ if len(sys.argv) > 3 and os.path.exists(sys.argv[3]):
         for h in line.replace("\t", " ").split():
             if len(h) == 7:
                 skip.add(h)
+# 「連続した作業が複数コミットになった場合」をまとめるための期間。
+# 同年内に広げると、implementation-status.md のように年間を通して何度も
+# 更新されるページで、別々の作業がまとまってしまう。
 WINDOW = int(os.environ.get("WINDOW","30"))
 PRWINDOW = int(os.environ.get("PRWINDOW","60"))
 PAPER = re.compile(r"(?i)(P\d{4}R\d+|LWG\s?\d+|CWG\s?\d+|#\d+)")

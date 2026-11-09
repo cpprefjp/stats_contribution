@@ -42,9 +42,18 @@ if ovp and os.path.exists(ovp):
 
 FIXM_MAX = int(os.environ.get("FIXM_MAX", "40"))
 LINKSUBJ = re.compile(r"(?i)リンク|関連項目|nolink|\blinks?\b|参照を")
-MISTAKE = re.compile(r"誤り|間違|になっていた|が逆|抜けて|漏れて|のままだった|食い違|ミスを修正|コピーに|重複し")
+MISTAKE = re.compile(r"誤り|間違|になっていた|が逆|抜け|漏れ|のままだった|食い違|ミスを修正|ミスを直|コピーに|重複し")
 SPONSOR = re.compile(r"(?i)スポンサー|sponsor")
 REVERT  = re.compile(r"(?i)^revert|巻き戻|取り消")
+# 同じ人が同年に作成したページを記録する。
+# そのページへの後からの追記は、作成したときの作業にまとめる (ルールの注意事項)。
+CREATED = {}
+for c in sorted(commits, key=lambda x: x["date"]):
+    for f in c["files"]:
+        if f.get("status") == "A" and f["path"].endswith(".md"):
+            CREATED.setdefault((c["repo"], c["login"], f["path"]), c["date"])
+SELF_FOLD = re.compile(r"(typo|link|fixs|fixm)\b")
+
 rows = []
 for c in commits:
     repo = c["repo"]
@@ -160,6 +169,29 @@ for c in commits:
             subj = subj + " (dependabotのPRを動作確認してマージ)"
         else:
             tags = Counter({"ignore": 1}); manual = False; details = ["bot"]
+    # 自分が同年に作成したページへの追記は、作成したときの作業にまとめる。
+    # 仕様変更への対応 (fixl) と動作確認 (compiler) は別の価値なので残す。
+    pfx0 = "cpprefjp/" if repo == "cpprefjp/site" else "boostjp/"
+    folded = 0
+    for di, d in enumerate(details):
+        if ":" not in d:
+            continue
+        dpath, rest = d.split(":", 1)
+        m = SELF_FOLD.match(rest)
+        if not m:
+            continue
+        if CREATED.get((repo, c["login"], dpath), "9999") >= c["date"]:
+            continue
+        k = pfx0 + m.group(1)
+        if tags.get(k, 0) > 0:
+            tags[k] -= 1
+            if tags[k] == 0:
+                del tags[k]
+            details[di] = d + "+self"
+            folded += 1
+    if folded and not any(v for k, v in tags.items() if k != "ignore"):
+        tags = Counter({"ignore": 1})
+
     # 人が明示した上書きは、自動ルールより後に適用して必ず最終結果に残す
     if c["hash"] in OV:
         d, add = OV[c["hash"]]
