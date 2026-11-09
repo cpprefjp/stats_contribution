@@ -1,4 +1,4 @@
 cpprefjp/site	f1090f2,39695e1,828812e,49d191b,56695bc,ffb8d64,3da7c5d	yumetodo	2026-09-15	cpprefjp/fixl:1	if_constexpr : CWG2518適用を前提とした記述に修正 (#1260)	akinomyoga
 cpprefjp/site	7b52ba3	faithandbrave	2025-12-01	ignore	2025年分の貢献ポイントを集計 (#1536)
-cpprefjp/site	82e6010,36edbb5,e5269ea,b5138ad,e28b3a7,f9a5a6e	faithandbrave	2026-11-09	ignore	2026年分の貢献ポイントを集計 (集計作業のため対象外)
+cpprefjp/site	82e6010,36edbb5,e5269ea,b5138ad,e28b3a7,f9a5a6e,61fb542	faithandbrave	2026-11-09	ignore	2026年分の貢献ポイントを集計 (集計作業のため対象外)
 cpprefjp/site	1ed3f7d,3214979	faithandbrave	2025-12-01	ignore	2025年分の集計ファイルのアカウント名を修正 (集計作業のため対象外)
